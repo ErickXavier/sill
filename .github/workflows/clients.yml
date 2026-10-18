@@ -1,7 +1,7 @@
-# The clients that are not Swift (clients/, docs/clients-plan.md): the shared Kotlin core, the
-# Windows client and the Android app. On pull requests and pushes to main that touch them, the wire
-# they speak (Sources/StreamProtocol) or the iOS app their design comes from (iOSClient), and by
-# hand. Nothing here signs or uses a secret.
+# The apps that are not Swift (clients/, docs/clients-plan.md): the shared Kotlin core, the
+# Windows client, the Android app, and the Linux host. On pull requests and pushes to
+# main that touch them, the wire they speak (Sources/StreamProtocol) or the iOS app their design
+# comes from (iOSClient), and by hand. Nothing here signs or uses a secret.
 #
 # - core: the core's and the Windows client's tests (the decoder on real HEVC, the model Mac end
 #   to end), the Windows client's real windows under Xvfb (every control at StreamLayout's
@@ -14,6 +14,12 @@
 #   included) and the debug APK.
 # - windows: the Windows client's tests on Windows (FFmpeg's Windows build), and its packaged
 #   runtime (jpackage's app image, no installer) running its self-test.
+# - hosts-linux: the host's shared rules against the Kotlin client (the status card's and menu's
+#   words against Sill.app's, the QR code against python-qrcode's), the Linux host end to end on a
+#   real X server (Xvfb, openbox, xterm): pairing, x11grab and HEVC decoded to the terminal's colour,
+#   typing into it, Aa, close; its UI (the tray menu, Settings, the pairing window) drawn at 1x and
+#   2x in both appearances, kept as screenshots; then the packaged host's self-test. The host
+#   builds with JDK 25, which Gradle fetches (foojay).
 #
 # Cost: free for a public repository; Linux and Windows minutes otherwise (about 10 minutes each).
 name: Clients
@@ -120,3 +126,37 @@ jobs:
           ./gradlew --no-daemon :desktop:jpackage -Psill.jpackageType=app-image
           # jpackage leaves java.exe out of the runtime it bundles: the app's own launcher runs the check.
           desktop/build/jpackage/Sill/Sill.exe --self-test
+
+  hosts-linux:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Use Java 21 for Gradle
+        run: echo "JAVA_HOME=$JAVA_HOME_21_X64" >> "$GITHUB_ENV"
+
+      - name: An X server's window manager and terminal
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq openbox xterm libasound2t64 libpulse0 libva2 libva-drm2 libdrm2 libxcb-shm0  # FFmpeg's avdevice links them
+
+      - name: The hosts' rules, and the Linux host end to end
+        working-directory: clients
+        run: |
+          ./gradlew --no-daemon :host-core:test
+          xvfb-run -a -s "-screen 0 1600x1000x24" ./gradlew --no-daemon :host:test
+
+      - name: The packaged Linux host's self-test
+        working-directory: clients
+        run: |
+          ./gradlew --no-daemon :host:jpackage
+          xvfb-run -a -s "-screen 0 1600x1000x24" host/build/jpackage/SillHost/bin/SillHost --self-test
+
+      - name: Keep the host's UI screenshots
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: host-ui-screenshots
+          path: clients/host/build/ui-shots/
+          if-no-files-found: warn
+          retention-days: 14

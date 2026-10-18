@@ -148,7 +148,7 @@ it.
 ## Other systems (in development)
 
 Sill on more systems, in `clients/` and not released yet. None of it has run
-on a real device, on real Windows or against a real Mac, so treat it as a
+on a real device, on real Windows or against a real Mac or PC, so treat it as a
 preview:
 [docs/clients-plan.md](docs/clients-plan.md) says what was checked, how, and
 the steps still to try on devices. These are written in Kotlin, around one
@@ -169,9 +169,20 @@ are Swift.
 - **Sill for Windows** is a client of your Mac too, for a PC on Windows 10 or
   11, laid out like the iPad app in a window: the bar, the window strip, Aa,
   the drawer, the Settings panel and the Mac's menus. Your mouse clicks and
-  scrolls, Ctrl acts as ⌘, and the picture is decoded with FFmpeg, the one
-  third-party library here (LGPL; [docs/BRIEF.md](docs/BRIEF.md) says why:
+  scrolls, Ctrl acts as ⌘, and the picture is decoded with FFmpeg, its one
+  third-party library (LGPL; [docs/BRIEF.md](docs/BRIEF.md) says why:
   Windows has no HEVC decoder of its own without a paid Store extension).
+- **The Linux host** turns a Linux desktop on X11 into what Sill for Mac is:
+  it streams its own windows to the same iPhone, iPad, Android and Windows
+  apps, over the same encrypted, paired connection, and no app changes for
+  it. It lives in the tray (or a small window without one) with Sill for
+  Mac's status card, menu, Settings, pairing window and log, and maps the
+  Mac's shortcuts to the PC's (⌘ to Ctrl, ⌘Space to the Super key, ⌘Q to
+  Alt+F4). It encodes with the GPU's encoder when it has one (NVIDIA, Intel or
+  AMD through VAAPI), else in software with FFmpeg's GPL build, so a packaged
+  host is distributed under the GPL ([docs/BRIEF.md](docs/BRIEF.md)). Not yet:
+  the Mac's menus, the virtual display, Direct Wireless Connection,
+  Wayland-native windows and more than one monitor.
 
 ## Tips
 
@@ -220,9 +231,10 @@ The iPhone and iPad app:
    Mac. The first time, a Sill for Mac built from this repository asks you to
    pair: scan the code it shows, or connect the device with a USB cable.
 
-The Android and Windows clients ([above](#other-systems-in-development))
-build with Gradle in `clients/`: a JDK 17 or later, and the Android SDK
-(`ANDROID_HOME`) for the Android app. `./gradlew test` runs their tests and
+The Android and Windows clients and the Linux host
+([above](#other-systems-in-development)) build with Gradle in `clients/`: a JDK
+17 or later, and the Android SDK (`ANDROID_HOME`) for the Android app; the host
+fetches JDK 25 by itself. `./gradlew test` runs their tests and
 the shared core's, with no device; [docs/clients-plan.md](docs/clients-plan.md)
 has every check, and [docs/ui-parity.md](docs/ui-parity.md) how their screens
 follow the iPhone and iPad app's.
@@ -230,6 +242,7 @@ follow the iPhone and iPad app's.
 ```
 cd clients && ./gradlew :desktop:run        # the Windows client (on Windows, or Linux x64)
 cd clients && ./gradlew :android:assembleDebug
+cd clients && ./gradlew :host:run           # the Linux host (an X11 session)
 ```
 
 [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) has the rest: every command-line
@@ -243,7 +256,8 @@ to the conventions and decisions in [CLAUDE.md](CLAUDE.md): Swift and Apple
 frameworks only, no third-party dependencies, nothing that needs a server, and
 latency before picture quality. `clients/` is the exception that
 docs/BRIEF.md records: Kotlin, with each platform's own APIs, and FFmpeg for
-the Windows client. Open an issue before starting anything large.
+the Windows client and the Linux host. Open an issue before starting anything
+large.
 Before a pull request, `Tests/checks/run-all.sh` runs the same pure checks as
 CI, in about five minutes and with no device.
 Contributions are accepted under the project's license. Please report a

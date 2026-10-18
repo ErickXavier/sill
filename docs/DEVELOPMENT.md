@@ -798,6 +798,28 @@ Sources/StreamProtocol with swiftc (Xcode, or swift.org's toolchain on Linux) an
 regenerates it (commit the result) and updates `Payloads.kt` to match; `generate.sh --verify` fails
 until both are done, and `generate.sh --check` decodes the Kotlin core's encodings (written by
 `:core:test`) with the Mac's types. `mdns_fixture.py` and `hevc_sample.sh` remake the other fixtures.
+
+### The Linux host
+
+`clients/host-core` and `clients/host` make a Linux computer a Sill host: devices list it
+beside the Macs and stream its windows (docs/clients-plan.md, "Hosts"). The host builds and runs
+with JDK 25 (the foreign function API reaches Xlib and XTest); Gradle fetches one where
+none is installed. It needs an X11 session (Xorg, or XWayland's windows under Wayland) with
+libX11 and libXtst. The host listens on port 7455 and answers mDNS on 5353 beside the system's
+own responder; its key, paired devices and settings are in `~/.config/sill-host/host.json`
+(0600), its log in `host.log` beside it. Delete the file to start over: every device then pairs again.
+
+```
+cd clients
+./gradlew :host-core:test                 # the door, pairing, sessions and catalog against the Kotlin client on a fake platform
+xvfb-run -a ./gradlew :host:test          # the Linux host end to end: openbox and an xterm on the display (install both), pairing, video decoded, typing, Aa, close
+./gradlew :host:run                       # the host's window: the pairing code, paired devices, Require pairing, quality
+./gradlew :host:run --args="--headless --pair"   # no window: the code and the link on stdout (--port N for another port)
+./gradlew :host:jpackage                  # an app image, host/build/jpackage/SillHost
+host/build/jpackage/SillHost/bin/SillHost --self-test   # HEVC encoding, the platform, a screen capture, the store, the door's TLS
+host/build/jpackage/SillHost/bin/SillHost --input-probe # the platform's input typed into a text field of its own, read back
+SILL_ENCODER=libx265 ./gradlew :host:run  # force one encoder (hevc_nvenc, hevc_qsv, hevc_vaapi, libx265)
+```
 CI's `clients.yml` runs all of it, the Android build and the Windows client's tests on Windows.
 
 To try a client against Sill.app: the Mac and the PC or phone on the same network, the client's

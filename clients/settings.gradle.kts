@@ -1,5 +1,6 @@
-// Sill's clients that are not Swift (docs/clients-plan.md): the shared core, the Windows client
-// (a JVM desktop app) and the Android app. The Mac host and the iPhone and iPad app are
+// Sill's apps that are not Swift (docs/clients-plan.md): the shared core, the Windows client (a JVM
+// desktop app), the Android app, and the Linux host (host-core, the door and the
+// session for any host; host, the platforms). The Mac host and the iPhone and iPad app are
 // Package.swift and iOSClient/, untouched by this build.
 pluginManagement {
     repositories {
@@ -8,6 +9,11 @@ pluginManagement {
         gradlePluginPortal()
     }
 }
+// Java toolchains on demand: the host needs JDK 25 (the foreign function API, for Xlib);
+// Gradle fetches one where none is installed, on a developer's machine and on CI alike.
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
+}
 dependencyResolutionManagement {
     repositories {
         google()
@@ -15,7 +21,7 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "sill-clients"
-include(":core", ":swing-ui", ":desktop")
+include(":core", ":swing-ui", ":desktop", ":host-core", ":host")
 // The Android app needs the Android SDK: built only where one is configured (ANDROID_HOME,
 // ANDROID_SDK_ROOT or local.properties' sdk.dir), so the core and the Windows client build anywhere.
 val androidSdk = System.getenv("ANDROID_HOME") ?: System.getenv("ANDROID_SDK_ROOT")

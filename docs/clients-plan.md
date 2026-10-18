@@ -1,9 +1,12 @@
-# Windows and Android clients
+# Windows, Linux and Android: clients and hosts
 
-Branches `android-client` (the core and the Android app) and `windows-client` (the Windows client
-on top), 2026-10-18. The request was to "add full support for Windows and Android" with no
-regressions for the Apple platforms, each system landing on its own. This file records what that
-came to mean here, the decisions, how each part was checked, and what only real devices can show.
+One change per system, each on the one before (2026-10-18): the core and the Android client
+(`client-android`), the Windows client (`client-windows`), the Linux host (`host-linux`) and the
+Windows host (`host-windows`). The request was to "add full support for Windows and Android" with
+no regressions for the Apple platforms, then: "Windows should also be a server. And also Linux as a
+server." This file records what that came to mean here, the decisions, how each part was checked,
+and what only real devices can show. The hosts have their own section, "Hosts", after the
+clients'.
 
 ## What "support" means here
 
@@ -11,10 +14,9 @@ Sill has no platform layer to extend. The Mac host is ScreenCaptureKit, VideoToo
 Accessibility, a private virtual-display API and Network.framework end to end. The iPhone and iPad
 app is SwiftUI and UIKit. Only `Sources/StreamProtocol` (the wire) is shared. So:
 
-- **Windows and Android are clients.** The Mac stays the only machine that streams its windows,
-  which is what the product is (docs/BRIEF.md). A Windows *host* (streaming a PC's windows) would
-  be a second product: Windows Graphics Capture, Media Foundation or NVENC, SendInput and UI
-  Automation. It is not built.
+- **Windows and Android are clients** of the Mac, and since the second request **a PC is also a
+  host**: it streams its own windows to the same devices over the same wire (the section
+  "Hosts"). The Mac's host is untouched.
 - **One shared core, in Kotlin on the JVM** (`clients/core`), the way StreamProtocol is shared by
   the Mac and the iPad. It runs unchanged on Windows (a JVM desktop app) and on Android. It has no
   dependency but the Kotlin standard library: JSON, DNS, DER and TLS pinning are written out, as
@@ -194,3 +196,94 @@ Known gaps, to do next: the Mac's menus and the trackpad gestures in the UI, an 
 icon, a setting for Ctrl as ⌃, DPAPI for the Windows key, localization, an Android session that
 survives the activity (a foreground service), Direct3D 11 output without the CPU copy, and code
 signing for the Windows installer (unsigned, SmartScreen warns).
+
+## Hosts
+
+"Windows should also be a server. And also Linux as a server." A Linux computer on X11 now streams
+its windows to the iPhone and iPad app, the Android app and the Windows client, over the Mac's
+wire, door and pairing, so no client changed for it: a device lists the PC beside the Macs
+(`_sill._tcp`), asks to pair, types the code the PC shows or scans it, and streams. The Windows
+host is a change of its own on this one: it adds a platform, and the rest is shared.
+
+### Layout
+
+- `clients/host-core` (JDK 17, the core alone): what every host that is not the Mac does the Mac's
+  way. `StreamHost` (the coordinator: the catalog in the Mac's connect order, one stream at the
+  highest rate a device asks for, the select and viewport rules, Aa's resize, kinds 16 and 17 with
+  the Mac menu's values, the signed kind 18, the clipboard, gestures, the PC's own pointer as
+  kind 26, the goodbyes), `HostClient` (one device's sending: the in-flight rule, keyframe waiting,
+  eviction after 4 s stalled), `HostDoor` (TLS 1.3, both ALPNs, the pending caps, the refusal
+  backoff, a TLS context per connection), `PairingWindow` and `AskLimits` (the Mac's pairing and
+  ask rules), `TrustList` and `HostIdentity`, `MdnsResponder` (an mDNS responder of its own on port
+  5353, shared through SO_REUSEADDR), `InputTranslator` (the Mac's input as the PC's), `HostStatus`
+  (Sill.app's StatusText and MenuBuilder rules, and every word), `QrCode`, and `HostPlatform`, the
+  interface each operating system implements, with `CaptureRect` (a window's rectangle kept on the
+  screen, for capture, input and the pointer alike).
+- `clients/host` (JDK 25): the platform and the app. `LinuxPlatform` (Xlib and XTest through the
+  JDK's foreign function API: EWMH window lists and messages, XTest input, keys by evdev code,
+  text by keysym), `FfmpegVideo` (x11grab of the window's rectangle into HEVC: NVENC, Quick Sync or
+  VAAPI, else x265), `HostMain` (`--headless`, `--pair`, `--port`, `--self-test`,
+  `--input-probe`), `ui/` (Sill.app's status card and menu as a tray popup, Settings, the pairing
+  window with its QR code, the log; docs/ui-parity.md) and `HostStore` (a 0600 JSON file, as the
+  Windows client keeps its key).
+
+### Decisions (defaults a later change can revisit)
+
+- **The same wire and door, not a new protocol.** The host is the Mac's TLS door with pairing
+  required, so every client's pinning, pairing and goodbye rules hold unchanged. One door on port
+  7455 (the remote door's number, so a typed address needs no port) serves home and away; it admits
+  only paired keys while Require pairing is on, so it carries the Mac's remote door's rules, and
+  kind 18 lists the PC's addresses (a Tailscale address as "vpn" first) for a device's remote dial.
+- **FFmpeg's GPL build** (bytedeco's `-gpl` natives): the only build with a software HEVC encoder
+  (x265), for a PC without a GPU that encodes HEVC; the hardware encoders come first. Distributed,
+  the host is therefore GPLv3 as a whole; the source stays Apache-2.0 (docs/BRIEF.md). The Windows
+  client keeps the LGPL build.
+- **The JDK's foreign function API, not JNI or JNA**: no native code of Sill's own and no binding
+  dependency; JDK 25 (the LTS; the API is final from 22). Gradle fetches it (foojay).
+- **Capture of the window's rectangle on the screen** (x11grab), not of the window itself: what the
+  person sees, the picked window raised first, as the Mac raises it in regular mode. A window
+  covered on the PC shows what covers it; a move restarts the capture at the new place. No virtual
+  display.
+- **Input**: positions as on the Mac (fractions of the frame); ⌘ and ⌃ are Ctrl, ⌥ Alt; ⌘Space the
+  Super key, ⌘Tab Alt+Tab, ⌘Q Alt+F4, ⌘←/→ Home/End, ⌥←/→ by word; keys by physical position; text
+  as Unicode whatever the layout.
+- **Gestures** as the PC's shortcuts: Super, Ctrl+Alt+arrows, Super+A, Super+D.
+- **The words**: Sill.app's, with "this PC" for "this Mac" and "device" for any device; the
+  devices still say "Add a Mac…", which also adds a PC.
+- **Not done**: the Mac's menus (kinds 24, 25, 27 are skipped, so no Menus button shows), the
+  virtual display, Direct Wireless, the cable rule, a keyring for the key, Wayland's own windows
+  (X11 and XWayland only), multiple monitors (the primary screen is the Desktop).
+
+### How it was checked (this Linux machine, 2026-10-18 and 19)
+
+- `:host-core:test`: the real Kotlin `SillClient` against a host on a fake platform pairs by ask
+  and code, gets the catalog in the Mac's order with a kind 18 signed by the door's key, streams a
+  real HEVC sample starting at a keyframe, has a click at (0.5, 0.5) land in the window's middle,
+  ⌘C become Ctrl+C with Ctrl let go before text, Aa resize the window and restart the stream, Pro
+  taken and 999 fps refused with the answering token, the clipboard both ways (the device's own
+  text not echoed), a gesture's chord, the PC's pointer shown, a closed window stop the stream,
+  Remove send "removed"; an unpaired key refused; Require pairing back on send "pairingRequired";
+  Quit send "quit"; the in-flight rule and eviction; the pairing window's tries, backoff,
+  per-source spacing, stop and expiry; the ask rule; the input translation; the trust list; the
+  responder's answers read by the clients' browser; the status card's and menu's words against
+  Sill.app's rules; the QR code module for module against python-qrcode's. The review's findings
+  each have a test that fails without its fix (`HostDoorTest`, `HostReviewTest`,
+  `CaptureRectTest`).
+- `:host:test` under Xvfb with openbox and a real xterm: pairing with the code, the terminal in the
+  list with its thumbnail, x11grab and x265 decoded by the Windows client's decoder to the
+  terminal's own colour (#3366CC within 12), a command typed as text with an "é" (written by
+  keysym remap) and one as physical keys (⇧ included) creating their files, the pointer at the
+  device's position, Aa resizing the terminal and the stream following, the clipboard through AWT
+  (a concealed copy never sent), the window closed from the device; the UI at 1x and 2x in both
+  appearances. The responder found by the clients' browser over the machine's real interface.
+- The packaged host (jpackage's app image with its own runtime) passes `--self-test` (x265, the
+  store, the platform, the door's TLS, a capture of the screen), `--headless --pair` advertises,
+  listens on 7455, prints the code and the link and writes its key 0600; the window renders.
+  `--input-probe` (the platform's input into a text field of its own) reads back "Sill é✓ aB".
+
+### Untested, for Noah
+
+- **The iPhone, iPad and Android apps against this host**: only the Kotlin client has run against
+  it. L1: on a Linux PC with Xorg (not Wayland), the iPad lists the PC, pairs, streams a window,
+  types; L2 a GPU encoder (NVENC or VAAPI) chosen; L3 GNOME's and KDE's overview from the
+  three-finger swipe.
