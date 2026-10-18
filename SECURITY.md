@@ -1,7 +1,7 @@
 # Security
 
-Sill lets an iPhone, an iPad or an Android device see and control a Mac, so a
-flaw in it matters.
+Sill lets an iPhone, an iPad, an Android device or a Windows PC see and control
+a Mac, so a flaw in it matters.
 If you find one, please report it privately.
 
 ## Reporting a problem
@@ -31,7 +31,8 @@ who has it, and the newest iPhone and iPad app.
 - The apps in `clients/`, in development and not released: the shared core
   (the same connection, pairing and keys as the iPhone and iPad app's) and
   the Android app, including the device key it seals with the Android
-  Keystore.
+  Keystore, and the Windows client (its key is a file in the user's profile
+  until it is sealed with DPAPI).
 
 Known, and by design: with Require pairing off (Settings › Devices), any
 device on the Mac's own networks, one nearby while Direct Wireless Connection

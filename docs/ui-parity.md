@@ -109,6 +109,34 @@ The Mac's menus, the first-run tour, Pair This Device's overlay over a stream, t
 Larger Picture, the Settings panel's route word and its Away from home section, and the Mac's
 cursor shapes (a plain arrow).
 
+## The Windows client (`clients/desktop`, `clients/swing-ui`)
+
+`clients/swing-ui` holds the controls drawn from the core's tokens, with no client types, so the
+PC host reuses them: the bar button, key cap, Aa button and its ruler, the window strip with its
+lights menu, the row list, the Apps drawer, the Settings panel and its rows (menu picker,
+segmented control, switch, footnote, callout), the trackpad well (driving `PadTracker`), the dim
+behind sheets, a dark text field, dark scrollbars, and `Animator` on the core's curves. The stream
+window places every control at `StreamLayout.of(...)`'s rect (the landscape bar, and the halves in
+a tall window), opens and closes everything through `StreamUi`, and shows the `SettingsLedger`'s
+view; the connect window is the iOS connect screen with Add a Mac… as a card in the column.
+
+Windows' own: the native frame and its buttons kept; Esc closes the ruler, the lights, the drawer,
+the panel, then goes to the Mac; Tab moves through the bar with a focus ring only then; 1 pt = 1
+logical pixel (Java2D's per-monitor scaling), the video and thumbnails at device pixels; a minimum
+window of 632×440; 120 fps asked of a Mac on a display of 100 Hz or more.
+
+Checked: `:desktop:uiTest` under Xvfb at 100 % and 200 % (every control's rect against the layout,
+the palette's colours at 100 %, the drawer, panel, lights, ruler and trackpad driven, input reaching
+the model Mac, Disconnect), screenshots in `clients/desktop/build/ui-shots/` (CI keeps them).
+
+Not at parity: the title bar stays the system's light one (a dark one needs DwmSetWindowAttribute,
+native code on JDK 17); three- and four-finger gestures, the Mac's menus, the pairing row's
+highlight.
+
+Device checks: W7 the window at 100 %, 150 % and 200 % on real Windows, and moved between monitors
+of different scaling; W8 Narrator through the bar and the panel; W9 a precision touchpad's two-
+finger scroll over the picture.
+
 ## Device checks (none of this has run on a device or an emulator)
 
 - F1: on a Galaxy Z Fold 8, whether the window extensions report the fold (`adb logcat -s
