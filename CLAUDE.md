@@ -8,6 +8,49 @@ Formerly winstream; the folder still carries the old name.
 
 ## Current step
 
+**Windows and Linux hosts (2026-10-18, branch `pc-hosts` on `windows-client`, after the clients below;
+docs/clients-plan.md, "Hosts: Windows and Linux").** Noah: "Windows should also be a server. And also
+Linux as a server." A PC streams its windows to the same devices over the Mac's wire, door and
+pairing; no client changed. Nothing under Sources/, iOSClient/ or the Mac's build changed.
+- `clients/host-core` (JDK 17, the core alone): `StreamHost` (the coordinator, on one thread like the
+  main actor: the catalog in the Mac's connect order, select, viewport fps and Aa's resize, kinds 16/17
+  with the menu's values and the 4-a-second cap, kind 18 signed, clipboard, gestures, the PC's pointer
+  as kind 26, goodbyes), `HostClient` (in flight > 2 drops deltas and waits for a keyframe; 4 s stalled
+  after 8 s ends it), `HostDoor` (TLS 1.3, both ALPNs, 8 pending / 2 per source / 10 s, 5 refusals a
+  minute → 300 s), `PairingWindow`, `AskLimits`, `TrustList`, `HostIdentity`, `MdnsResponder`,
+  `InputTranslator` (⌘/⌃ → Ctrl, ⌥ → Alt, ⌘Space → Super, ⌘Tab → Alt+Tab, ⌘Q → Alt+F4), `HostPlatform`.
+- `clients/host` (JDK 25, foojay-provisioned; bytecode 22 for Kotlin 2.1): `LinuxPlatform` (Xlib/XTest
+  by FFM, EWMH, evdev keycodes, keysym-remapped Unicode text), `WindowsPlatform` (user32/dwmapi/kernel32
+  by FFM, scan codes, KEYEVENTF_UNICODE, DPI aware), `FfmpegVideo` (x11grab/gdigrab rectangle; NVENC,
+  QSV, VAAPI, MF, else x265; FFmpeg's **GPL** build, BRIEF.md), `HostMain` (`--headless`, `--pair`, `--port`, `--self-test`), `HostStore`, `ui/` (Sill.app's
+  card, menu, Settings, pairing window with its QR code, log; see the UI parity entry). Port 7455, one door for home and away.
+- Verified here: host-core 20 tests and host 8 (with the UI's 6) ×2 clean; `xvfb-run :host:test` ×2 with openbox and xterm (pair, list,
+  thumbnail, x11grab+x265 decoded to the terminal's colour, text with "é" and physical keys typed into
+  it, pointer, Aa, clipboard, close; mDNS over the real interface); the jpackage'd host's self-test;
+  `--headless --pair`; the window rendered; `--input-probe`. The Windows platform under Wine 9 (Windows
+  JDK 25): window list, frame, pointer, gdigrab capture, `--input-probe` (SendInput Unicode and scan codes,
+  which Wine needs with the virtual key beside); not the door (the JDK's NetworkInterface crashes in Wine).
+- **Untested, for Noah:** the Windows host on Windows (Actions has never run in this fork: clients.yml
+  runs on a pull request); any iPhone, iPad or Android app against a PC host (docs/clients-plan.md's H1–H7, L1–L3). Not
+  built: menus, virtual display, Direct Wireless, Wayland-native windows, multiple monitors.
+
+**The review of the three PRs, and Keep Screen On (2026-10-19, on all three branches).** A code review
+of PRs #1–#3 found ten faults, each fixed in its system's commit with a test that fails without it:
+the PC host's door shared one TLS context, so a ticket from a `sill-pair/1` connection resumed on
+`sill/1` unpaired (a context per connection now, and the trust list judged again after the handshake;
+`HostDoorTest`: 3 of 3 let in before); on Windows a device's LaunchApp ran any path through `cmd /c
+start` (only a listed app, in StreamHost and the platform, through ShellExecuteW); a key's or button's
+up with nothing streaming was dropped (`InputTranslator.handleDropped`); kind 21 skipped AskLimits;
+an ask from a key already trusted got an ok without a proof (a code now); a window partly off the
+screen was clicked against its whole frame (`CaptureRect`, the grab's rectangle, for capture, input
+and the pointer); the Windows client released right-side modifiers as left ones; Android never let
+keys go on focus loss (`HardwareKeys`); the core's remote dial waited for every loser (the winner at
+once: 1.3 s against 10.0 s); ⇧Return, ⇧Tab and ⌥Delete reached the Mac without their modifier (keys
+now, Windows client and Android). Noah: "Android/IOS: app should have an option to keep the phone
+awake": Keep Screen On in the Settings panel's This device group, on by default (`Sill.keepScreenOn`;
+iOS's idle timer through `ScreenAwake`, Android's `FLAG_KEEP_SCREEN_ON`; docs/ui-parity.md), its own
+commit after the Android client's. **Untested, for Noah:** the iOS switch on a device (CI builds it).
+
 **UI parity and foldables (2026-10-18, on `android-client`; docs/ui-parity.md).** The request: the
 Android, Windows and Linux apps at "1:1 visual and functional parity" with the Apple ones, reusing
 their tokens, and "all foldable phones, including the new 4:3 Z Fold 8". Nothing under iOSClient/,
@@ -24,9 +67,16 @@ Sources/ or Package.swift changed: the iOS app is the source of truth, read by t
   strip with lights, drawer, Settings panel rows, switch, segmented control, trackpad well) at
   StreamLayout's rects; the native frame kept, dark scrollbars, Esc's order, Tab through the bar,
   1 pt = 1 logical px with the video at device pixels; `:desktop:uiTest` at 100 % and 200 %.
+- PC hosts (`pc-hosts`): Sill.app's status card and menu in MenuBuilder's order as a tray popup
+  (no tray: a "Sill Host" window), `HostStatusText` (StatusText's rules), Settings (General, Devices,
+  Streaming; 520 pt grouped forms with switches), the pairing window (440 pt, a QR code matching
+  python-qrcode module for module, the code, its states), the log; macOS 26's colours as Sill.app's
+  previews draw them (measured; they were macOS 14's until compared side by side), the clipboard
+  switch, and copies a password manager marks concealed never sent (the PC host sent them before),
+  following the PC's light or dark setting; `HostUiTest` under Xvfb at 1x and 2x.
 - Verified: core, swing-ui, desktop and Android JVM tests, lint, the APK, uiTest under Xvfb,
   `generate.sh --verify`. **Untested:** any device, emulator or real Windows (no KVM here):
-  docs/ui-parity.md's F1–F6 (F1 first: does a Fold 8 report its fold) and W7–W9. The Windows title
+  docs/ui-parity.md's F1–F6 (F1 first: does a Fold 8 report its fold) and W7–W9, the hosts' tray popup on real Windows and Linux desktops. The Windows title
   bar stays light (DwmSetWindowAttribute needs native code on JDK 17).
 
 **Windows and Android clients (2026-10-18, branches `android-client` from main and `windows-client` on it; docs/clients-plan.md
@@ -69,7 +119,8 @@ gained `clients/**` in paths-ignore, and clients.yml builds the clients.
   checkDependencies.
 - **Untested, for Noah:** everything against a real Mac and on real Windows and Android devices
   (docs/clients-plan.md's W1–W6 and A1–A6; W1 first: that Sill.app's Network.framework takes the
-  JDK's client certificate). clients.yml has not run on GitHub yet. Not built: the Mac's menus and
+  JDK's client certificate). clients.yml runs green on GitHub. The Mac's menus are built since
+  (core/ui's MacMenuState, the iOS app's rules; a Menus button on Android and Windows). Not built:
   gestures in the clients' UI, an adaptive Android icon, DPAPI for the Windows key, a foreground
   service on Android, a signed installer.
 
@@ -5537,7 +5588,10 @@ good.
   (included only with an Android SDK). `clients/wire-vectors/` makes the fixtures: `generate.sh`
   (vectors.json from Sources/StreamProtocol by swiftc; `--verify`, `--check`), `same_vectors.py`,
   `strip_remote.py`, `mdns_fixture.py` (python-zeroconf), `hevc_sample.sh` (libx265).
-  `.github/workflows/clients.yml` runs them on Linux, Android and Windows.
+  `.github/workflows/clients.yml` runs them on Linux, Android and Windows. `host-core` (the door,
+  pairing and session of any host that is not the Mac, over a `HostPlatform`) and `host` (the Linux
+  X11 and Windows platforms by the JDK's foreign function API, FFmpeg GPL capture and HEVC, the
+  window, jpackage) are the Windows and Linux hosts (docs/clients-plan.md, "Hosts").
 - `docs/BRIEF.md` — product decisions, competition, scope, risks.
 - `docs/DEVELOPMENT.md` — building, running and testing from source; the
   README's developer material until 2026-09-25, so a plan's "README" means a
@@ -5690,6 +5744,7 @@ Scripts/release-ios.sh --bump --upload  # Noah: the next build to TestFlight (do
 Scripts/make-dmg.sh --sign - .build/Sill.app .build/Sill.dmg   # the download's disk image of any build, ad hoc (release.sh makes the real one)
 python3 -m http.server 8000 --directory site   # the website at http://localhost:8000
 cd clients && ./gradlew :core:test :desktop:test    # the Windows and Android clients' core and Windows client (JDK 17+; docs/clients-plan.md)
+cd clients && ./gradlew :host-core:test && xvfb-run -a ./gradlew :host:test   # the Windows and Linux hosts (JDK 25 fetched; openbox and xterm for the end to end)
 cd clients && xvfb-run -a ./gradlew :desktop:uiTest  # the Windows client's real windows against the model Mac
 clients/wire-vectors/generate.sh --verify && clients/wire-vectors/generate.sh --check   # the Kotlin wire against the Mac's Swift types
 Scripts/encoder-check/run.sh            # the encoder checks that never touch an encoder (safe while Sill.app streams)
@@ -6166,7 +6221,9 @@ device keeps working with Macs from the first public build on, or each says why
 - Swift, Apple frameworks only. No third-party dependencies unless a decision
   in `docs/BRIEF.md` says so. Zero operating costs is a hard rule. `clients/`
   (Windows and Android) is Kotlin: the core uses the standard library alone, the
-  Windows client FFmpeg (the BRIEF's decision), the Android app platform APIs.
+  Windows client FFmpeg (the BRIEF's decision), the Android app platform APIs, the
+  Windows and Linux hosts FFmpeg's GPL build and the OS's libraries through the
+  JDK's foreign function API.
 - Threading in the spike is by hand: capture queue → VT callback thread →
   network queue. Keep it explicit and commented rather than reaching for actors
   until the design settles.

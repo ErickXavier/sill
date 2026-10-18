@@ -184,15 +184,17 @@ The iPhone and iPad app:
    Mac. The first time, a Sill for Mac built from this repository asks you to
    pair: scan the code it shows, or connect the device with a USB cable.
 
-Windows and Android clients are in development in `clients/` (Kotlin; a JDK
-17 or later, and the Android SDK for the Android app). They are not released,
-and no device has run them against a real Mac yet:
+Windows and Android clients, and Windows and Linux hosts (a PC streaming its
+own windows to the same apps), are in development in `clients/` (Kotlin; a JDK
+17 or later, the Android SDK for the Android app; the hosts fetch JDK 25). They
+are not released, and no device has run them against a real Mac or PC yet:
 [docs/clients-plan.md](docs/clients-plan.md) says what works, how it was
 checked and what is still to try.
 
 ```
 cd clients && ./gradlew :desktop:run        # the Windows client (on Windows, or Linux x64)
 cd clients && ./gradlew :android:assembleDebug
+cd clients && ./gradlew :host:run           # a Windows or Linux (X11) host
 ```
 
 [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) has the rest: every command-line
