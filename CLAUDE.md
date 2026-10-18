@@ -20,17 +20,22 @@ Sources/ or Package.swift changed: the iOS app is the source of truth, read by t
 - Android: every screen drawn from it, Android's insets, gesture exclusion, 48 dp targets, Back;
   foldables through the system's window extensions by reflection (no AndroidX), else the hinge
   sensor, mapped to the iOS app's FoldInfo (no fold: the iPad's inferred rule).
-- Verified: core and Android JVM tests, lint, the APK, `generate.sh --verify`. **Untested:** any
-  device or emulator (no KVM here): docs/ui-parity.md's F1–F6, F1 first (does a Fold 8 report its fold).
+- Windows client (`windows-client`): swing-ui's controls (bar button, key cap, Aa ruler, window
+  strip with lights, drawer, Settings panel rows, switch, segmented control, trackpad well) at
+  StreamLayout's rects; the native frame kept, dark scrollbars, Esc's order, Tab through the bar,
+  1 pt = 1 logical px with the video at device pixels; `:desktop:uiTest` at 100 % and 200 %.
+- Verified: core, swing-ui, desktop and Android JVM tests, lint, the APK, uiTest under Xvfb,
+  `generate.sh --verify`. **Untested:** any device, emulator or real Windows (no KVM here):
+  docs/ui-parity.md's F1–F6 (F1 first: does a Fold 8 report its fold) and W7–W9. The Windows title
+  bar stays light (DwmSetWindowAttribute needs native code on JDK 17).
 
-**The Android client (2026-10-18, branch `android-client` from main; docs/clients-plan.md has the
-design, the decisions, every check and what only devices can show).** The request: "add full
-support for Windows and Android" with no regressions on the Apple platforms, then each system on
-its own, Android first (the Windows client and the Windows and Linux hosts follow in their own
-changes). Sill has no platform layer (the host is ScreenCaptureKit, VideoToolbox, Accessibility and
-Network.framework end to end), so Android is a **client of the Mac** over **one Kotlin/JVM core**
-(`clients/`, a Gradle build). Nothing under Sources/, iOSClient/, Package.swift, Scripts/ or Tests/
-changed. ci.yml only gained `clients/**` in paths-ignore, and clients.yml builds the clients.
+**Windows and Android clients (2026-10-18, branches `android-client` from main and `windows-client` on it; docs/clients-plan.md
+has the design, the decisions, every check and what only devices can show).** The request: "add full
+support for Windows and Android" with no regressions on the Apple platforms. Sill has no platform
+layer (the host is ScreenCaptureKit, VideoToolbox, Accessibility and Network.framework end to end),
+so both are **clients of the Mac**, never hosts, over **one Kotlin/JVM core** (`clients/`, a Gradle
+build). Nothing under Sources/, iOSClient/, Package.swift, Scripts/ or Tests/ changed. ci.yml only
+gained `clients/**` in paths-ignore, and clients.yml builds the clients.
 - `clients/core` (standard library only): the wire field for field (`Payloads`, `StreamMessage`,
   `Json` written out), SafeText, SillVersion, the address parser (inet_* written out), pairing
   crypto, the hand-built certificate, recognition tags, pairing links, kind 18's signature, TLS 1.3
@@ -38,11 +43,15 @@ changed. ci.yml only gained `clients/**` in paths-ignore, and clients.yml builds
   resumption), one-shot mDNS from an ephemeral port, the session (hello first, the Mac's caps, ping
   0.25 s, liveness max(6 s, 4 × rtt), stats, auto-Desktop, keyframe gating, 8 ms move coalescing),
   pairing (ask then code, link, Add a Mac by address), saved Macs, GoodbyePolicy, the redial
-  schedule, `SillClient` (what the app is a view over), key maps, `TouchGestures`, `HevcSps`,
+  schedule, `SillClient` (what both apps are views over), key maps, `TouchGestures`, `HevcSps`,
   `ReplayingRouter`. Test fixtures: `ModelHost` (a model of the Mac's TLS door, TEST ONLY) and
   `HevcSample`.
-- `clients/android`: platform APIs only (no AndroidX), minSdk 29, MediaCodec on a SurfaceView, the
-  key sealed by an Android Keystore key, `sill://pair` links behind a confirmation.
+- `clients/desktop`, the Windows client: Swing, FFmpeg 7.1.1 through bytedeco 1.5.12 (Direct3D 11,
+  else the CPU; the project's one third-party runtime dependency, Windows only, recorded in
+  docs/BRIEF.md), Ctrl as ⌘, the wheel as a scroll gesture, jpackage (an MSI on Windows with WiX 3;
+  `Sill --self-test`). `clients/android`: platform APIs only (no AndroidX), minSdk 29, MediaCodec on
+  a SurfaceView, the key sealed by an Android Keystore key, `sill://pair` links behind a
+  confirmation.
 - Wire vectors from the Mac's own code: `clients/wire-vectors/generate.sh` compiles
   Sources/StreamProtocol with swiftc (on Linux too: 13 files as they are, Remote.swift without its
   signing) into `vectors.json`. `--verify` checks by content, `--check` has Swift decode Kotlin's
@@ -51,14 +60,18 @@ changed. ci.yml only gained `clients/**` in paths-ignore, and clients.yml builds
 - Verified on Linux (docs/clients-plan.md, "How it was checked"): the 57 payloads both ways
   against the Swift types; SafeText on every scalar (only Unicode 15.1/16.0's 5,812 new ones
   differ); the pairing vectors; openssl on the certificate, kind 18's signature and TLS both ways;
-  52 core tests, 20 full runs in a row clean (repetition found two real bugs: a fast refusal's
-  timer race and a refused key read as a lost link), the whole client against the model Mac; a
-  live python-zeroconf responder found; Android debug and release builds, lint clean with
+  52 core and 8 Windows-client tests, 20 full runs in a row clean (repetition found two real bugs:
+  a fast refusal's timer race and a refused key read as a lost link), the whole client against the
+  model Mac; a live
+  python-zeroconf responder found; libx265 HEVC decoded by FFmpeg end to end; the Windows client's
+  real windows under Xvfb (connect, picture, a click at (0.5, 0.5), typing, Esc, Disconnect); the
+  jpackage'd runtime's self-test; Android debug and release builds, lint clean with
   checkDependencies.
-- **Untested, for Noah:** everything against a real Mac and on a real Android device
-  (docs/clients-plan.md's A1–A6; A1 first: that Sill.app's Network.framework takes Android's client
-  certificate). clients.yml has not run on GitHub yet. Not built: the Mac's menus and gestures in
-  the UI, an adaptive icon, a foreground service, a signed release.
+- **Untested, for Noah:** everything against a real Mac and on real Windows and Android devices
+  (docs/clients-plan.md's W1–W6 and A1–A6; W1 first: that Sill.app's Network.framework takes the
+  JDK's client certificate). clients.yml has not run on GitHub yet. Not built: the Mac's menus and
+  gestures in the clients' UI, an adaptive Android icon, DPAPI for the Windows key, a foreground
+  service on Android, a signed installer.
 
 **The clipboard both ways (2026-10-14, branch `clipboard` from main at 985a733; issue #64; PR #78;
 the plan, its open questions with the default taken for each, the results and the review's fixes are
@@ -5517,13 +5530,14 @@ good.
   active keyboards) must add its category and reason there before the next
   upload. New files need their four pbxproj entries by hand.
   Swift 5 language mode.
-- `clients/` — the Android client (docs/clients-plan.md): a Gradle build (`gradlew`, Gradle
-  8.14.3 pinned by checksum) of `core` (the shared Kotlin core: the wire, pairing, TLS, mDNS, the
-  session, `SillClient`; test fixtures `ModelHost` and `HevcSample`) and `android` (included only
-  with an Android SDK). `clients/wire-vectors/` makes the fixtures: `generate.sh`
+- `clients/` — the Windows and Android clients (docs/clients-plan.md): a Gradle build
+  (`gradlew`, Gradle 8.14.3 pinned by checksum) of `core` (the shared Kotlin core: the wire,
+  pairing, TLS, mDNS, the session, `SillClient`; test fixtures `ModelHost` and `HevcSample`),
+  `desktop` (the Windows client: Swing, FFmpeg, jpackage; `uiTest` on a display) and `android`
+  (included only with an Android SDK). `clients/wire-vectors/` makes the fixtures: `generate.sh`
   (vectors.json from Sources/StreamProtocol by swiftc; `--verify`, `--check`), `same_vectors.py`,
   `strip_remote.py`, `mdns_fixture.py` (python-zeroconf), `hevc_sample.sh` (libx265).
-  `.github/workflows/clients.yml` runs them and builds the APK.
+  `.github/workflows/clients.yml` runs them on Linux, Android and Windows.
 - `docs/BRIEF.md` — product decisions, competition, scope, risks.
 - `docs/DEVELOPMENT.md` — building, running and testing from source; the
   README's developer material until 2026-09-25, so a plan's "README" means a
@@ -5675,8 +5689,8 @@ Scripts/release-ios.sh                  # the iOS app for App Store Connect: arc
 Scripts/release-ios.sh --bump --upload  # Noah: the next build to TestFlight (docs/release-checklist.md, TestFlight; --privacy-report, --print-version)
 Scripts/make-dmg.sh --sign - .build/Sill.app .build/Sill.dmg   # the download's disk image of any build, ad hoc (release.sh makes the real one)
 python3 -m http.server 8000 --directory site   # the website at http://localhost:8000
-cd clients && ./gradlew :core:test      # the Android client's core against the model Mac (JDK 17+; docs/clients-plan.md)
-cd clients && ./gradlew :android:lintDebug :android:assembleDebug   # the APK (an Android SDK in ANDROID_HOME)
+cd clients && ./gradlew :core:test :desktop:test    # the Windows and Android clients' core and Windows client (JDK 17+; docs/clients-plan.md)
+cd clients && xvfb-run -a ./gradlew :desktop:uiTest  # the Windows client's real windows against the model Mac
 clients/wire-vectors/generate.sh --verify && clients/wire-vectors/generate.sh --check   # the Kotlin wire against the Mac's Swift types
 Scripts/encoder-check/run.sh            # the encoder checks that never touch an encoder (safe while Sill.app streams)
 Scripts/menu-check/run.sh               # the menus' reader and mirror against Scripts/menufixture.swift, no host, no encoder (needs Accessibility)
@@ -6151,8 +6165,8 @@ device keeps working with Macs from the first public build on, or each says why
 
 - Swift, Apple frameworks only. No third-party dependencies unless a decision
   in `docs/BRIEF.md` says so. Zero operating costs is a hard rule. `clients/`
-  (Android) is Kotlin: the core uses the standard library alone, the Android app
-  platform APIs.
+  (Windows and Android) is Kotlin: the core uses the standard library alone, the
+  Windows client FFmpeg (the BRIEF's decision), the Android app platform APIs.
 - Threading in the spike is by hand: capture queue → VT callback thread →
   network queue. Keep it explicit and commented rather than reaching for actors
   until the design settles.

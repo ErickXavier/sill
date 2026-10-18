@@ -1,16 +1,21 @@
-# The clients that are not Swift (clients/, docs/clients-plan.md): the shared Kotlin core and the
-# Android app. On pull requests and pushes to main that touch them, the wire they speak
-# (Sources/StreamProtocol) or the iOS app their design comes from (iOSClient), and by hand. Nothing here signs or uses a secret.
+# The clients that are not Swift (clients/, docs/clients-plan.md): the shared Kotlin core, the
+# Windows client and the Android app. On pull requests and pushes to main that touch them, the wire
+# they speak (Sources/StreamProtocol) or the iOS app their design comes from (iOSClient), and by
+# hand. Nothing here signs or uses a secret.
 #
-# - core: the core's tests (the model Mac end to end) and the wire against the Mac's own Swift
+# - core: the core's and the Windows client's tests (the decoder on real HEVC, the model Mac end
+#   to end), the Windows client's real windows under Xvfb (every control at StreamLayout's
+#   rectangles and the iOS app's colours, at 100 % and at 200 %), and the wire against the Mac's own Swift
 #   types (clients/wire-vectors: vectors regenerated from Sources/StreamProtocol must match the
 #   committed ones, and Swift decodes what the Kotlin core writes), and the design layer against
 #   the iOS app (clients/design: Tokens.kt and ui-vectors.json regenerated from iOSClient's Swift
 #   must match the committed ones, and the core's words must still be the iOS app's).
 # - android: the Android app's JVM tests (the fold mapping, the layouts), Android lint (the core
 #   included) and the debug APK.
+# - windows: the Windows client's tests on Windows (FFmpeg's Windows build), and its packaged
+#   runtime (jpackage's app image, no installer) running its self-test.
 #
-# Cost: free for a public repository; Linux minutes otherwise (about 10 minutes each).
+# Cost: free for a public repository; Linux and Windows minutes otherwise (about 10 minutes each).
 name: Clients
 
 on:
@@ -43,12 +48,17 @@ jobs:
       - name: Use Java 21
         run: echo "JAVA_HOME=$JAVA_HOME_21_X64" >> "$GITHUB_ENV"
 
-      - name: The core's tests
+      - name: The core's and the Windows client's tests
         working-directory: clients
         run: |
           # python-zeroconf lets MdnsTest read this core's queries with another implementation.
           python3 -m pip install --quiet --user 'zeroconf==0.151.5' || echo "zeroconf not installed: that cross-check skips"
-          ./gradlew --no-daemon :core:test
+          ./gradlew --no-daemon :core:test :swing-ui:test :desktop:test
+
+      - name: The Windows client's windows, under Xvfb
+        working-directory: clients
+        # uiTest, then uiTestHiDpi (-Dsun.java2d.uiScale=2) after it; the halves need 1000 logical rows.
+        run: xvfb-run -a -s "-screen 0 1600x1200x24" ./gradlew --no-daemon :desktop:uiTest
 
       - name: The wire and the design against the Mac's and the iOS app's Swift
         run: |
@@ -57,6 +67,15 @@ jobs:
           clients/wire-vectors/generate.sh --verify
           clients/wire-vectors/generate.sh --check
           clients/design/generate.sh --verify
+
+      - name: Keep the windows' screenshots
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: windows-client-screenshots
+          path: clients/desktop/build/ui-shots/
+          if-no-files-found: warn
+          retention-days: 14
 
   android:
     runs-on: ubuntu-24.04
@@ -80,3 +99,24 @@ jobs:
           name: sill-android-debug
           path: clients/android/build/outputs/apk/debug/android-debug.apk
           retention-days: 14
+
+  windows:
+    runs-on: windows-2025
+    timeout-minutes: 30
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Use Java 21
+        run: echo "JAVA_HOME=$JAVA_HOME_21_X64" >> "$GITHUB_ENV"
+
+      - name: The Windows client's tests on Windows
+        working-directory: clients
+        run: ./gradlew --no-daemon :swing-ui:test :desktop:test
+
+      - name: The packaged runtime's self-test
+        working-directory: clients
+        run: |
+          ./gradlew --no-daemon :desktop:jpackage -Psill.jpackageType=app-image
+          # jpackage leaves java.exe out of the runtime it bundles: the app's own launcher runs the check.
+          desktop/build/jpackage/Sill/Sill.exe --self-test

@@ -770,21 +770,26 @@ the passwords of service `me.saffer.sill.remote`. Deleting those makes that
 build new to every device, which must pair again. On the device, a paired
 Mac's row has Forget in its menu (touch and hold).
 
-## The Android client
+## Windows and Android clients
 
 `clients/` is a Gradle build of Sill's clients that are not Swift (docs/clients-plan.md has the
 design, the decisions and what is verified): `core` (the wire, pairing, TLS with pinned keys,
-discovery and the session, in Kotlin with no dependency) and `android` (MediaCodec, platform APIs
-only, minSdk 29). Nothing in it touches the Mac or iPad builds. It needs a JDK 17 or later;
-`./gradlew` fetches Gradle 8.14.3 (checksum pinned). `:android` is built only where an Android SDK is
-configured (`ANDROID_HOME`, or `sdk.dir` in `clients/local.properties`).
+discovery and the session, in Kotlin with no dependency), `desktop` (the Windows client: Swing,
+FFmpeg for HEVC, jpackage) and `android` (MediaCodec, platform APIs only, minSdk 29). Nothing in it
+touches the Mac or iPad builds. It needs a JDK 17 or later; `./gradlew` fetches Gradle 8.14.3
+(checksum pinned). `:android` is built only where an Android SDK is configured (`ANDROID_HOME`, or
+`sdk.dir` in `clients/local.properties`).
 
 ```
 cd clients
 ./gradlew :core:test                      # the core: the wire vectors, crypto, TLS (with openssl), mDNS, the session, the whole client against the model Mac
 SILL_LIVE_MDNS=1 ./gradlew :core:test     # also a live python-zeroconf responder on this machine's network (pip install zeroconf)
+./gradlew :desktop:test                   # the HEVC decoder on real libx265 streams, input mapping, the stream end to end
+xvfb-run -a ./gradlew :desktop:uiTest     # the Windows client's real windows, clicked and typed into (any display; screenshots in desktop/build/ui-shots)
+./gradlew :desktop:run                    # run the Windows client (SILL_DECODER=software: no Direct3D; SILL_DEV_PLAIN=1: dial a plain door, the CLI's)
+./gradlew :desktop:jpackage               # on Windows with WiX 3: desktop/build/jpackage/Sill-0.6.0.msi; elsewhere an app image
+desktop/build/jpackage/Sill/bin/Sill --self-test   # the packaged runtime: FFmpeg's decoder, the identity, TLS 1.3 (Sill.exe on Windows)
 ./gradlew :android:lintDebug :android:assembleDebug  # android/build/outputs/apk/debug/android-debug.apk
-adb install -r android/build/outputs/apk/debug/android-debug.apk   # onto a phone or tablet with USB debugging on
 ```
 
 The wire's vectors come from the Mac's own code: `clients/wire-vectors/generate.sh` compiles
@@ -793,12 +798,13 @@ Sources/StreamProtocol with swiftc (Xcode, or swift.org's toolchain on Linux) an
 regenerates it (commit the result) and updates `Payloads.kt` to match; `generate.sh --verify` fails
 until both are done, and `generate.sh --check` decodes the Kotlin core's encodings (written by
 `:core:test`) with the Mac's types. `mdns_fixture.py` and `hevc_sample.sh` remake the other fixtures.
-CI's `clients.yml` runs all of it and the Android build.
+CI's `clients.yml` runs all of it, the Android build and the Windows client's tests on Windows.
 
-To try it against Sill.app: the Mac and the phone on the same network, tap the Mac's row ("Not
-paired"), and type the code the Mac's pairing window shows. Away from home: Add a Mac… with the
-address and code from Pair iPhone or iPad…. Against a test host on this Mac, `SillHost --synthetic
---pairing` is the TLS home door.
+To try a client against Sill.app: the Mac and the PC or phone on the same network, the client's
+Connect on the Mac's row ("Not paired"), and the code the Mac's pairing window shows. Away from
+home: Add a Mac… with the address and code from Pair iPhone or iPad…. Against a test host on this
+Mac, `SillHost --synthetic --pairing` is the TLS home door; the clients do not dial the CLI's plain
+door unless `SILL_DEV_PLAIN=1` (Windows client).
 
 ## Test tools
 

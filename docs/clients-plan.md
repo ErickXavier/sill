@@ -1,10 +1,9 @@
-# The Android client
+# Windows and Android clients
 
-Branch `android-client`, 2026-10-18. The request was to "add full support for Windows and Android"
-with no regressions for the Apple platforms, then to land each system on its own, Android first.
-This file records what the Android client and the core it shares came to mean, the decisions, how
-each part was checked, and what only real devices can show. The Windows client and the Windows and
-Linux hosts come in their own changes on top of this one.
+Branches `android-client` (the core and the Android app) and `windows-client` (the Windows client
+on top), 2026-10-18. The request was to "add full support for Windows and Android" with no
+regressions for the Apple platforms, each system landing on its own. This file records what that
+came to mean here, the decisions, how each part was checked, and what only real devices can show.
 
 ## What "support" means here
 
@@ -12,19 +11,21 @@ Sill has no platform layer to extend. The Mac host is ScreenCaptureKit, VideoToo
 Accessibility, a private virtual-display API and Network.framework end to end. The iPhone and iPad
 app is SwiftUI and UIKit. Only `Sources/StreamProtocol` (the wire) is shared. So:
 
-- **Android is a client.** The Mac stays the machine that streams its windows, which is what the
-  product is (docs/BRIEF.md).
+- **Windows and Android are clients.** The Mac stays the only machine that streams its windows,
+  which is what the product is (docs/BRIEF.md). A Windows *host* (streaming a PC's windows) would
+  be a second product: Windows Graphics Capture, Media Foundation or NVENC, SendInput and UI
+  Automation. It is not built.
 - **One shared core, in Kotlin on the JVM** (`clients/core`), the way StreamProtocol is shared by
-  the Mac and the iPad. It runs unchanged on Android and on any JVM (the later Windows client). It
-  has no dependency but the Kotlin standard library: JSON, DNS, DER and TLS pinning are written out, as
+  the Mac and the iPad. It runs unchanged on Windows (a JVM desktop app) and on Android. It has no
+  dependency but the Kotlin standard library: JSON, DNS, DER and TLS pinning are written out, as
   the Swift side writes its certificate by hand.
 - **Nothing on the Apple side changed.** No file under `Sources/`, `iOSClient/`, `Package.swift`,
   `Scripts/` or `Tests/` was modified. `.github/workflows/ci.yml` only gained `clients/**` in its
   `paths-ignore`, so a change confined to clients/ does not start the macOS job.
-- **Not parity with the iPad app.** The client does what a session needs: discovery, pairing (ask
+- **Not parity with the iPad app.** The clients do what a session needs: discovery, pairing (ask
   and code, a pairing link, Add a Mac by address), TLS with pinned keys at both doors, the remote
   dial of a saved Mac, the reconnect, the window bar, apps, the picture, mouse, touch, keyboard,
-  the clipboard both ways, quality, text size and the goodbye words. It does not have the Mac's
+  the clipboard both ways, quality, text size and the goodbye words. They do not have the Mac's
   menus, trackpad gestures, the first-run tour, the Duo or phone layouts, Direct Wireless, the
   cable rule, Larger Picture or the iPad's on-screen key row and trackpad. The wire carries them
   (`SillSession.fetchMenu`, `gesture`), and the UI does not offer them yet.
@@ -32,8 +33,8 @@ app is SwiftUI and UIKit. Only `Sources/StreamProtocol` (the wire) is shared. So
 ## Layout
 
 - `clients/settings.gradle.kts`, `build.gradle.kts`, `gradlew`: one Gradle build. `:android` is
-  included only where an Android SDK is configured, so the core builds anywhere with a JDK 17 or
-  later.
+  included only where an Android SDK is configured, so the core and the Windows client build
+  anywhere with a JDK 17 or later.
 - `clients/core`: `Json`, `StreamMessage` (framing, kinds, parameter sets, blobs, Annex B),
   `Payloads` (every JSON payload, field for field), `Text` (SillVersion, SafeText, the address
   parser with the C library's inet_* written out), `Crypto` (base64url, SPKI, the Mac ID, the
@@ -42,10 +43,12 @@ app is SwiftUI and UIKit. Only `Sources/StreamProtocol` (the wire) is shared. So
   `Mdns` (one-shot multicast DNS queries from an ephemeral port), `Session` (hello first, the reader
   with the Mac's caps, ping, liveness, stats, the auto-Desktop rule, keyframe gating, move
   coalescing), `Pairing` (ask, code, link, cancel, the saved Macs), `Policy` (the goodbye words, the
-  home dial, the redial schedule), `Client` (what an app is a view over), `Keys` (HID usages
-  from Android and AWT key codes, the modifiers, the coast, frame mapping), `TouchGestures`,
+  home dial, the redial schedule), `Client` (what both apps are views over), `Keys` (HID usages
+  from AWT and Android key codes, the PC's modifiers, the coast, frame mapping), `TouchGestures`,
   `HevcSps`, `ReplayingRouter`. Test fixtures: `ModelHost` (a model of the Mac's TLS door) and
   `HevcSample` (libx265 streams as the Mac sends VideoToolbox's).
+- `clients/desktop`: the Windows client. Swing (in the JDK), FFmpeg 7.1.1 through bytedeco 1.5.12
+  for HEVC (Direct3D 11 when the GPU has it, else the CPU), `jpackage` for the installer.
 - `clients/android`: the Android app. Platform APIs only (no AndroidX), minSdk 29 (TLS 1.3 and
   ALPN), MediaCodec on a SurfaceView, the device key sealed by an Android Keystore key.
 - `clients/wire-vectors`: `generate.sh` compiles the real StreamProtocol with swiftc (on Linux too:
@@ -53,31 +56,42 @@ app is SwiftUI and UIKit. Only `Sources/StreamProtocol` (the wire) is shared. So
   `vectors.json`. `--verify` regenerates the file and compares it by content. `--check` decodes
   what the Kotlin core wrote, using the Mac's own types. `mdns_fixture.py` (python-zeroconf) and
   `hevc_sample.sh` (libx265) make the other fixtures.
-- `.github/workflows/clients.yml`: two jobs (core with the Swift check, Android).
+- `.github/workflows/clients.yml`: three jobs (core with the Swift check, Android, Windows).
 
 ## Decisions taken (each the default a later change can revisit)
 
-1. **A client only.** As above.
-2. **Kotlin on the JVM.** One implementation of the wire and its rules, which a desktop client can
-   share later, instead of one per platform.
-3. **No third-party dependency.** MediaCodec decodes HEVC in hardware on every device that has it;
-   the app uses platform APIs only (no AndroidX).
+1. **Clients only.** As above.
+2. **Kotlin on the JVM for both.** One implementation of the wire and its rules instead of two (C#
+   and Kotlin, or C++ and Kotlin). The Windows client carries its own Java runtime through
+   jpackage.
+3. **FFmpeg on Windows.** Windows decodes HEVC only with the Store's HEVC Video Extensions (paid
+   unless the PC maker included them), and the JVM has no decoder. FFmpeg (LGPL, dynamically
+   linked through bytedeco's prebuilt libraries) decodes in software everywhere and through
+   Direct3D 11 on GPUs that have it. This is the project's first third-party runtime dependency,
+   and docs/BRIEF.md records it. Android needs none: MediaCodec decodes HEVC in hardware on every
+   device that has it.
 4. **Discovery by one-shot mDNS queries** (RFC 6762 §5.1) from an ephemeral port on every
-   multicast interface. Nothing binds port 5353 (Android's mdnsd holds it), and Android needs no
-   multicast lock. Queries go out at once, then after 1 and 2 s, then every 3 s; a Mac that stops
+   multicast interface. Nothing binds port 5353 (Windows' DNS Client and Android's mdnsd hold it),
+   and Android needs no multicast lock. Windows Firewall lets unicast responses to multicast through
+   by default. Queries go out at once, then after 1 and 2 s, then every 3 s; a Mac that stops
    answering drops off after its TTL.
-5. **Ctrl is ⌘** on an Android hardware keyboard, so Ctrl+C copies on the Mac as it does on the
-   device. Meta is ⌃ and Alt is ⌥.
+5. **Ctrl is ⌘** on the PC and on an Android hardware keyboard, so Ctrl+C copies on the Mac as it
+   does on the PC. The Windows key (Meta) is ⌃ and Alt is ⌥. `DesktopModifiers(ctrlIsCommand =
+   false)` swaps them, but no setting offers it yet.
 6. **Keys as text or keys by the iPad's rule** (KeyChords.swift): keys without text and shortcuts
    go as keys, everything else as the text it types, so the Mac's keyboard layout never re-maps
-   what was typed.
+   what was typed. Windows' AltGr (Ctrl+Alt) types text.
 7. **The clipboard:** the Mac's copies arrive on the device's clipboard. The device's copy goes to
    the Mac when the stream window comes back to the front, if it changed. The iPad needs a Paste
-   tap because of iOS's paste prompt; Android has no prompt.
-8. **The device key at rest:** PKCS#8 sealed with AES-GCM by a non-exportable Android Keystore key.
-9. **Scrolling:** a mouse wheel is a scroll gesture (began, deltas, ended after 120 ms still), so
-   Mac apps rubber-band; fingers coast by the iPad's rule.
-10. **Package name:** `me.saffer.sill`, the iOS bundle ID. Version 0.6.0, build 1.
+   tap because of iOS's paste prompt; Windows and Android have no prompt.
+8. **The device key at rest:** Windows, a file in `%APPDATA%\Sill`, guarded by the profile's ACL
+   (no DPAPI). Android, PKCS#8 sealed with AES-GCM by a non-exportable Android Keystore key. Linux,
+   `~/.config/sill`, mode 600.
+9. **The wheel is a scroll gesture** (began, deltas, ended after 120 ms still), so Mac apps
+   rubber-band. No client-made coast on Windows: precision touchpads deliver their own inertia.
+   Android fingers coast by the iPad's rule.
+10. **Package names:** Android `me.saffer.sill`, the iOS bundle ID. Version 0.6.0 for both,
+    build 1.
 
 ## How it was checked (on this Linux machine, 2026-10-18)
 
@@ -110,8 +124,20 @@ app is SwiftUI and UIKit. Only `Sources/StreamProtocol` (the wire) is shared. So
 - **mDNS:** a response that python-zeroconf built parses. zeroconf reads this core's queries as
   intended (both questions, the QU bit). TTLs and goodbyes behave. With `SILL_LIVE_MDNS=1`, a live
   zeroconf responder on this machine's eth0 was found over the network in 1.7 s.
-- **Video:** the HEVC SPS parser reads 320×240 and 642×418 (the latter through its conformance
-  window) from libx265 streams split as the Mac sends VideoToolbox's output.
+- **Video:** libx265 streams, split as the Mac sends VideoToolbox's output, decode through FFmpeg
+  with one picture per access unit and none held back. A flat 0x3366CC comes out within 6 steps of
+  that colour. 30 frames of a moving 642×418 pattern (an odd, window-like size) all decode, scaled
+  to the view. End to end, the model Mac streams them over TLS through the session, gate and
+  decoding thread: 30 of 30 decoded, no failures. The SPS parser reads 320×240 and 642×418 (the
+  latter through its conformance window).
+- **The Windows client's real windows** (Xvfb, `java.awt.Robot`): the connect window lists the
+  model Mac; a double-click connects; the stream window draws the picture and the thumbnails; a
+  click lands at (0.5, 0.5) ± 0.02; typing "hi" arrives as text and Esc as a key; Disconnect
+  returns to the connect window with its words. Screenshots in `clients/desktop/build/ui-shots/`.
+- **Packaging:** `jpackage` on Linux makes the app image with the same trimmed runtime and module
+  list the Windows installer uses. `Sill --self-test` from it loads FFmpeg's HEVC decoder, makes
+  the identity and its certificate, and finds TLS 1.3. The packaged app opens its window under Xvfb
+  and writes its store with modes 700 and 600.
 - **Android:** `assembleDebug` and `assembleRelease` build. Android lint runs with
   `checkDependencies`, so the core's API use is checked against minSdk 29. It found one real crash
   (`Activity.getDisplay()` needs API 30) and three other findings (backup rules, `performClick`,
@@ -121,32 +147,43 @@ app is SwiftUI and UIKit. Only `Sources/StreamProtocol` (the wire) is shared. So
   `RejectedExecutionException` would have killed the client's worker thread. Second, a key refused
   after the TLS 1.3 handshake (an alert on the first read) or at the dial read as a lost link, so a
   removed device retried for ever instead of asking to pair again. Three earlier timing races were
-  in the tests, not the code. The final code ran the core's suite (52 tests) 20 times in a row
-  clean.
+  in the tests, not the code. The final code ran the core's and the Windows client's suites
+  (52 + 8 tests) 20 times in a row clean.
 
 ## Untested: what only real devices and a real Mac can show
 
 Nothing here ran against a real Mac. The model Mac is this repository's reading of the host's
-rules, not the host. Nothing ran on an Android device (no KVM here, so no emulator). The first
-thing to do with a real Mac is the list below, in order:
+rules, not the host. Nothing ran on Windows or on an Android device (no KVM here, so no emulator).
+The first thing to do with a real Mac is the list below, in order:
 
-1. **A1, pairing at home:** Sill.app on the Mac, the app on a phone on the same Wi-Fi
-   (`adb install -r android/build/outputs/apk/debug/android-debug.apk`). The Mac is listed with "Not
-   paired". A tap brings up the Mac's pairing window; its code pairs and the session starts
-   (Sill.log: "Client hello: ‹phone›, Sill 0.6.0 (1), protocol 1"). This is the first proof that the
-   Mac's Network.framework accepts Android's client certificate and handshake.
-2. **A2, the picture:** the Desktop at Retina size through MediaCodec (`KEY_LOW_LATENCY` on Android
-   11 and later); the fps and frame age in the bar.
-3. **A3, input:** tap, long press as a right-click, one- and two-finger scrolling and the coast, the
-   soft keyboard, a hardware keyboard and mouse (ChromeOS, DeX), rotation.
-4. **A4, the bar:** thumbnails, a window picked, Apps, Quality, text size, Disconnect, and the Mac
-   quitting Sill (the words and the reconnect).
-5. **A5, links and away from home:** the camera app opening the Mac's QR code (confirmed before
-   pairing); Add a Mac by the address the pairing window shows (Tailscale).
-6. **A6, the key:** it survives an app restart and not a reinstall.
-7. **Also:** Universal Clipboard is the Mac's; the clipboard both ways; a Mac on another subnet
+1. **W1, pairing at home, Windows:** Sill.app on the Mac, this client on a PC on the same Wi-Fi.
+   The Mac is listed with "Not paired". Connect brings up the Mac's pairing window. Its code pairs
+   and the session starts (Sill.log: "Client hello: Windows (‹PC›), Sill 0.6.0 (1), protocol 1").
+   This is the first proof that the Mac's Network.framework accepts the JDK's client certificate
+   and handshake.
+2. **W2, the picture and decoding:** the Desktop at Retina size. Note the fps and frame age (the
+   bar's stats) on the GPU (`video: decoder on the GPU` on stderr) and with
+   `SILL_DECODER=software`. A PC without D3D11 HEVC falls back to the CPU by itself.
+3. **W3, input:** clicks, drags, right-click, the wheel (rubber-banding at a list's end), typing
+   in TextEdit (accents, AltGr on a non-US layout), Ctrl+C/Ctrl+V as ⌘C/⌘V, Esc, arrows, F-keys,
+   and focus leaving the window with a key held (it comes up).
+4. **W4, the bar:** thumbnails, a window picked, right-click Close/Minimize/Full Screen, Apps,
+   Quality, text size (Aa) resizing the Mac window, Disconnect, and the Mac quitting Sill (the
+   words and the reconnect).
+5. **W5, away from home:** Add a Mac by the address the pairing window shows (Tailscale), the
+   session through the remote door, then the saved Mac's remote row after a restart.
+6. **W6, the installer:** `gradlew :desktop:jpackage` on Windows with WiX 3 on PATH. Install per
+   user, Start menu, first launch (the firewall prompt, if any), the store in `%APPDATA%\Sill`, an
+   upgrade over it.
+7. **A1–A6, the same on Android** (a phone and a tablet): discovery on Wi-Fi, ask and code, the
+   picture through MediaCodec (`KEY_LOW_LATENCY` on Android 11 and later), tap, long press as a
+   right-click, one- and two-finger scrolling and the coast, the soft keyboard, a hardware
+   keyboard and mouse (ChromeOS, DeX), rotation, the camera app opening the Mac's QR code
+   (confirmed before pairing), the device key surviving an app restart and not a reinstall.
+8. **Both:** Universal Clipboard is the Mac's; the clipboard both ways; a Mac on another subnet
    (not listed: Add a Mac by address); a Mac whose Require pairing is off (the open door).
 
-Known gaps, to do next: the Mac's menus and the trackpad gestures in the UI, an adaptive icon,
-localization, a session that survives the activity (a foreground service), and a signed release
-build.
+Known gaps, to do next: the Mac's menus and the trackpad gestures in the UI, an adaptive Android
+icon, a setting for Ctrl as ⌃, DPAPI for the Windows key, localization, an Android session that
+survives the activity (a foreground service), Direct3D 11 output without the CPU copy, and code
+signing for the Windows installer (unsigned, SmartScreen warns).
