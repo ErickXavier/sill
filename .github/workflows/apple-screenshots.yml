@@ -1,0 +1,63 @@
+# Screenshots of the Apple apps as they are on this branch: Sill.app's own previews
+# (-SillRenderPreviews: the Settings panes, the status card and menu, the glyphs) and the iOS app in
+# the simulator, the real app and its layout harness (ContentView's contract) at the iPad's, the
+# iPhone's and the iPhone Duo's sizes. On a push to apple-screenshots, and by hand. Nothing here
+# signs (make-app.sh signs ad hoc without an identity), uses a secret or publishes; the pictures
+# are this run's artifact for 14 days.
+name: Apple screenshots
+
+on:
+  push:
+    branches: [apple-screenshots]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  shots:
+    runs-on: xcode-27
+    timeout-minutes: 45
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # make-app.sh's build number is the commit count
+          persist-credentials: false
+
+      - name: Select Xcode 27
+        uses: ./.github/actions/select-xcode
+        with:
+          version: '27'
+
+      - name: Sill.app's previews
+        run: |
+          Scripts/make-app.sh
+          mkdir -p "$RUNNER_TEMP/shots/mac"
+          .build/Sill.app/Contents/MacOS/Sill -SillRenderPreviews "$RUNNER_TEMP/shots/mac"
+          ls "$RUNNER_TEMP/shots/mac" | head -200
+
+      - name: Select Xcode 27.1 for the iOS app
+        uses: ./.github/actions/select-xcode
+        with:
+          version: '27.1'
+          allow-beta: 'true'
+
+      - name: Build the iOS app for the simulator
+        run: |
+          xcodebuild -project iOSClient/Sill.xcodeproj -scheme Sill \
+            -destination 'generic/platform=iOS Simulator' -configuration Debug \
+            -derivedDataPath "$RUNNER_TEMP/DerivedData" CODE_SIGNING_ALLOWED=NO ARCHS=arm64 build \
+            | tail -5
+
+      - name: Photograph the iOS app
+        run: Scripts/screenshots/ios.sh "$RUNNER_TEMP/DerivedData/Build/Products/Debug-iphonesimulator/Sill.app" "$RUNNER_TEMP/shots/ios"
+
+      - name: Keep the screenshots
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: apple-screenshots
+          path: ${{ runner.temp }}/shots/
+          if-no-files-found: warn
+          retention-days: 14
