@@ -103,9 +103,25 @@ framework's own drawing on the JVM, a scratch harness, not committed) at phone, 
 sizes. It found a crash at every launch on Android 11 and later (`Look.edgeToEdge` read the window's
 insets controller before its decor existed) and rows of paired Macs without their way in, both fixed.
 
+### The Mac's menus (Android and the Windows client)
+
+`MacMenuState` (core/ui) is the iOS app's MacMenuState rule for rule (the top level, one fetch per
+menu with the title it was shown under, an answer settling only its token, a new tree settling the
+rest with "The menus changed…", the timeout max(4 s, 4 × the worst round trip), stale apps, presses
+never for a disabled row, sections, "‹n› more on the Mac", a top-level menu asking by what it
+showed); `MacMenus` runs it on the UI's thread with the tokens and the timeout. The session
+subscribes at its first window list, as the iOS app does, and the stream layouts already held the
+Menus slot: the button now shows while the Mac sends a top level or a note. Each menu is read from
+the Mac when it opens, never cached. Android: a PopupMenu of the top level; a menu replaces it with
+its own, headed by its title (Android's own submenus do so), sections as group dividers, a check
+for a mark, the shortcut as text after the title. The Windows client: a cascading Swing menu,
+"Loading…" until the Mac answers, the shortcut at the right of each row. `MacMenuStateTest` (the
+rules, and subscribe, open and choose against the model Mac) and `:desktop:uiTest` (the menu's
+titles, File read from the Mac, Save chosen there) check it.
+
 ### Not at parity on Android
 
-The Mac's menus, the first-run tour, Pair This Device's overlay over a stream, the clipboard chip,
+The first-run tour, Pair This Device's overlay over a stream, the clipboard chip,
 Larger Picture, the Settings panel's route word and its Away from home section, and the Mac's
 cursor shapes (a plain arrow).
 
@@ -130,12 +146,59 @@ the palette's colours at 100 %, the drawer, panel, lights, ruler and trackpad dr
 the model Mac, Disconnect), screenshots in `clients/desktop/build/ui-shots/` (CI keeps them).
 
 Not at parity: the title bar stays the system's light one (a dark one needs DwmSetWindowAttribute,
-native code on JDK 17); three- and four-finger gestures, the Mac's menus, the pairing row's
-highlight.
+native code on JDK 17); three- and four-finger gestures, the pairing row's highlight.
 
 Device checks: W7 the window at 100 %, 150 % and 200 % on real Windows, and moved between monitors
 of different scaling; W8 Narrator through the bar and the panel; W9 a precision touchpad's two-
 finger scroll over the picture.
+
+## The PC hosts (`clients/host-core`, `clients/host`)
+
+The Windows and Linux hosts match Sill.app, the Mac's menu bar app, adapted to a PC's tray:
+
+- `HostStatusText` (host-core, pure): StatusText.swift's headline order, the source row ("W×H · N
+  of M fps · X Mbps", "M fps, still", the route with one device), the device rows ("–" for a second
+  without a sample), shortName, middleTruncated(44), the tooltip, the glyph, "‹device› Wants to
+  Pair", with "this PC" for "this Mac". `HostMenu`: MenuBuilder's order (the card, attention items,
+  Frame Rate, Quality, Resolution, Launch at Login, Pair a Device…, Show Log…, Settings…, Quit);
+  what a PC host has no counterpart for (the virtual display, Direct Wireless, Remote Access,
+  macOS's permissions, the update offer) is left out.
+- `QrCode` (host-core): byte mode, level M as CIQRCodeGenerator's default, versions 1–40, the
+  standard's masks; identical module for module to python-qrcode 8.0 on real pairing links
+  (`src/test/qr/generate.py`, `qr-vectors.json`).
+- `host/ui`: the tray click opens a borderless popup with the 300 pt card and the menu (22 pt rows,
+  subtitles, checkmarks, submenus, Ctrl shortcuts, the accent highlight, arrows and Enter, Esc or
+  a lost focus closes it); with no tray, the same in a "Sill Host" window. Settings: General,
+  Devices, Streaming as 520 pt grouped forms with switches, in Sill.app's words. The pairing window:
+  440 pt, the QR code at whole device pixels per module, the code at 22 pt monospaced, its states
+  (waiting, asked by a device, a wrong code, expired, stopped, paired), brought forward when a
+  device asks. The log window. Colours are macOS 26's, as Sill.app's own previews draw them
+  (measured from `-SillRenderPreviews`: the window white or #171717, a group's rows 3 % over it with
+  no stroke, buttons filled at 8 % with no stroke, groups 10 pt round), light or dark as the PC is
+  set (Windows' AppsUseLightTheme, GNOME's color-scheme; dark otherwise). They were macOS 14's
+  (a grey window, white rows and white buttons, each with a hairline) until this was compared
+  side by side with Sill.app's previews.
+- Share clipboard with devices (Settings › General, on by default, as Sill.app's): off, the window
+  list stops offering the clipboard and nothing is read or sent. A copy a password manager marks as
+  concealed is never read, judged by its formats before any text, as Sill.app's ClipboardPolicy:
+  "ExcludeClipboardContentFromMonitorProcessing", "Clipboard Viewer Ignore" and
+  "CanIncludeInClipboardHistory" holding 0 on Windows, "x-kde-passwordManagerHint" holding "secret"
+  on X11, and the nspasteboard.org markers (`ClipboardConcealedTest`: another process owns the
+  clipboard with the marker beside the text, as the password manager would; before this the PC
+  host sent every copy, passwords included).
+
+Checked: host-core's tests; `HostUiTest` under Xvfb (the widths, row heights, menu order and words,
+the hover highlight, every QR module's pixel at 1x and 2x in both appearances, each control
+changing the host, a device's ask bringing the window forward; screenshots kept by CI); the
+packaged host's self-test.
+
+Not at parity: the update section and renaming a paired device (no backing feature on the PC host
+yet); the card's digits are not tabular (Java2D cannot turn that font
+feature on); the window chrome is the system's.
+
+Device checks: H8 the tray popup's place and focus on Windows 11 and on a GNOME and a KDE desktop;
+H9 the dark/light reading and Launch at Login on each; H10 an iPhone scanning the pairing window's
+QR code.
 
 ## Device checks (none of this has run on a device or an emulator)
 
