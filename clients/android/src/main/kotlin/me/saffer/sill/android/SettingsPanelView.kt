@@ -43,6 +43,8 @@ data class PanelModel(
     val problem: String?,
     val pendingSince: (SettingsField) -> Double?,
     val now: Double,
+    /** This device's Keep Screen On (its own preference, never sent). */
+    val keepScreenOn: Boolean = true,
 )
 
 /**
@@ -56,6 +58,7 @@ class SettingsPanelView(context: Context, dp: Dp) : Sheet(context, dp) {
     var onChange: (HostSettingsChange) -> Unit = {}
     var onDone: () -> Unit = {}
     var onDisconnect: () -> Unit = {}
+    var onKeepScreenOn: (Boolean) -> Unit = {}
     /** The most height the panel may take (core's layout gives the room). */
     var maxHeight = Int.MAX_VALUE
 
@@ -141,6 +144,15 @@ class SettingsPanelView(context: Context, dp: Dp) : Sheet(context, dp) {
         } else {
             middle.addView(Line(context, dp, PanelCopy.loading, null, Type.footnote, Palette.muted, spinner = true))
         }
+        // This device's own group, after the Mac's, whatever the Mac runs.
+        middle.addView(Line(context, dp, PanelCopy.thisDevice(m.device), null, Type.footnote, Palette.muted).apply {
+            isAccessibilityHeading = true
+            setPadding(0, dp(6.0).toInt(), 0, 0)
+        })
+        middle.addView(Group(context, dp).apply {
+            add(SwitchRow(context, dp, PanelCopy.keepScreenOn, m.keepScreenOn, true, false) { onKeepScreenOn(it) })
+        })
+        middle.addView(Footnote(context, dp, PanelCopy.keepScreenOnFooter(mac, m.device, m.keepScreenOn)))
     }
 
     private fun pending(m: PanelModel, f: SettingsField) = m.pendingSince(f)?.let { m.now - it >= Ui.pendingDelay } ?: false

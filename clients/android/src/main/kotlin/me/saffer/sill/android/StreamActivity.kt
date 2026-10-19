@@ -19,6 +19,7 @@ import android.text.InputType
 import android.view.Choreographer
 import android.view.InputDevice
 import android.view.KeyEvent
+import android.view.WindowManager
 import android.view.MotionEvent
 import android.view.SurfaceHolder
 import android.view.SurfaceView
@@ -247,6 +248,8 @@ class StreamActivity : Activity(), SessionListener, SurfaceHolder.Callback {
         panel.onChange = { c -> changeSettings(c) }
         panel.onDone = { ui.closeSettings() }
         panel.onDisconnect = { app.client.disconnect(); finish() }
+        panel.onKeepScreenOn = { on -> prefs.edit().putString(KEEP_SCREEN_ON, if (on) "1" else "0").apply(); applyKeepScreenOn(); refreshPanel() }
+        applyKeepScreenOn()
         pad.tracker.latched = { ui.state.latched }
         pad.tracker.onLatchSpent = { ui.latch(0) }
         pad.tracker.feed = { (macPointer ?: ownPointer) to pointerReseeds }
@@ -607,6 +610,18 @@ class StreamActivity : Activity(), SessionListener, SurfaceHolder.Callback {
         return keys.down(e.keyCode, usage, bits, e.unicodeChar, ::typed) || super.dispatchKeyEvent(e)
     }
 
+    // MARK: Keep Screen On
+
+    private val prefs by lazy { getSharedPreferences("sill", Context.MODE_PRIVATE) }
+    /** On unless turned off: this screen exists only while connected, so it is "while connected". */
+    private val keepScreenOn get() = prefs.getString(KEEP_SCREEN_ON, null) != "0"
+
+    /** The window's keep-screen-on flag, as a video player's: a stream only watched never dims or locks. */
+    private fun applyKeepScreenOn() {
+        if (keepScreenOn) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        else window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+    }
+
     /** Every key sent down, let go: the window lost focus or Sill left the screen, so its ups may never come here. */
     private fun releaseKeys() = keys.releaseAll()
 
@@ -677,7 +692,7 @@ class StreamActivity : Activity(), SessionListener, SurfaceHolder.Callback {
         val wanted = if (!pm.isPowerSaveMode && (rate ?: 60f) >= 100f) 120 else 60
         val noun = if (resources.configuration.smallestScreenWidthDp >= 600) "tablet" else "phone"
         panel.update(PanelModel(app.sessionMac, noun, ledger.host, ledger.displayed, wanted, pm.isPowerSaveMode, olderMac, problem,
-            { f -> ledger.pendingSince(f) }, now()))
+            { f -> ledger.pendingSince(f) }, now(), keepScreenOn))
     }
 
     private fun refreshStrip() {
@@ -807,3 +822,6 @@ class KeyInputView(private val activity: StreamActivity) : View(activity) {
         }
     }
 }
+
+/** This device's Keep Screen On (the Settings panel's This phone group; iOS's `Sill.keepScreenOn`). */
+private const val KEEP_SCREEN_ON = "Sill.keepScreenOn"

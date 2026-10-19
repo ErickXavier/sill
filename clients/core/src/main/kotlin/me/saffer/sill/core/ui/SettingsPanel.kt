@@ -163,4 +163,12 @@ object PanelCopy {
      *  `suggestion` whole (no-break spaces, PanelCopy.whole's job on iOS). */
     fun linkCallout(quality: String, suggestion: String) = "The link can’t carry $quality. $suggestion is recommended."
     fun linkUse(suggestion: String) = "Use $suggestion"
+
+    /** This device's own group, after the Mac's (HostSettingsPanel's `thisDevice`): its preferences, never sent. */
+    fun thisDevice(device: String) = "This $device"
+    const val keepScreenOn = "Keep Screen On"
+    /** Under Keep Screen On: what it does while connected, on or off. */
+    fun keepScreenOnFooter(mac: String, device: String, on: Boolean) =
+        if (on) "While connected to $mac, this $device doesn’t dim or lock by itself, so a stream you only watch stays in view."
+        else "This $device dims and locks by itself while connected, as it does elsewhere."
 }

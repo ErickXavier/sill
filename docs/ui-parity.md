@@ -63,6 +63,13 @@ drawer, the Settings panel with Disconnect at its foot, the phone's rows, keys a
 tablet's halves; animations on the iOS curves (with animations off in the system's settings, only
 fades).
 
+Keep Screen On (2026-10-19, both apps): the Settings panel's This iPhone, iPad, phone or tablet
+group ends with it, on by default, `Sill.keepScreenOn`, never sent to the Mac. While it is on and the
+stream screen shows, the screen never dims or locks by itself: iOS's idle timer off (`ScreenAwake`, a
+claim per stream screen, so two windows count), Android's `FLAG_KEEP_SCREEN_ON` on the stream's
+window. Off, Auto-Lock and the screen timeout apply as elsewhere. Its words are `PanelCopy`'s and the
+iOS app's (check_copy.py).
+
 Android's own: edge-to-edge insets; system gesture exclusion over the strip, the trackpad and the
 ruler; every target at least 48 dp (the 44 pt caps take the gap beside them); Back closes the
 ruler, the lights, the drawer, the panel, then goes home with the session kept; a hardware
