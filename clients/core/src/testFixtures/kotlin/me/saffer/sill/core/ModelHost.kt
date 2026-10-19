@@ -55,7 +55,7 @@ class ModelHost(
         Thread({ while (running) { val s = try { server.accept() } catch (_: IOException) { break }; Thread { serve(s) }.apply { isDaemon = true }.start() } }, "model-host").apply { isDaemon = true }.start()
     }
 
-    /** Pair iPhone or iPad… on the Mac: a fresh code and secret, five tries. */
+    /** Pair a Device… on the Mac: a fresh code and secret, five tries. */
     fun openWindow(): String {
         code = PairingCode.generate()
         secret = ByteArray(16).also(SecureRandom()::nextBytes)

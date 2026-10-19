@@ -211,12 +211,12 @@ object PairingWords {
         r.unknownReasonMessage?.let { return it }
         return when (r.reason) {
             PairResult.CODE -> "That code didn’t match." + (r.triesLeft?.let { " $it ${if (it == 1) "try" else "tries"} left." } ?: "")
-            PairResult.CLOSED -> "The Mac isn’t showing a code. Choose Pair iPhone or iPad… in Sill on the Mac."
+            PairResult.CLOSED -> "The Mac isn’t showing a code. Choose Pair a Device… in Sill on the Mac."
             PairResult.EXPIRED -> "That code expired. Choose New Code on the Mac."
             PairResult.STOPPED -> "Too many wrong codes. Choose New Code on the Mac."
             PairResult.BUSY -> "The Mac is busy. Try again in a moment."
             PairResult.SHOWN -> "Enter the code your Mac shows now, or paste its pairing link."
-            PairResult.OPEN_ON_MAC -> "On the Mac, choose Pair iPhone or iPad… in Sill’s menu, then enter its code here."
+            PairResult.OPEN_ON_MAC -> "On the Mac, choose Pair a Device… in Sill’s menu, then enter its code here."
             PairResult.LOCKED -> "Unlock the Mac, then try again."
             else -> "The Mac didn’t pair this $noun."
         }
