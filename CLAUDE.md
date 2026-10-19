@@ -8,6 +8,23 @@ Formerly winstream; the folder still carries the old name.
 
 ## Current step
 
+**Keep Screen On, Sill.app's device words and the review (2026-10-19, on `client-android`).**
+Noah: "Android/IOS: app should have an option to keep the phone awake": Keep Screen On in the
+Settings panel's This device group, on by default (`Sill.keepScreenOn`; iOS's idle timer through
+`ScreenAwake` in StreamScreen.swift, Android's `FLAG_KEEP_SCREEN_ON`; docs/ui-parity.md). Then
+"hosts should no longer mention only iPads and iPhones": Sill.app says "device" where it meant any
+(the menu's and Settings › Devices' "Pair a Device…", the window "Pair a Device", "A Device Needs
+Sill Updated", the footnotes, ClipboardPolicy.macFootnote), keeping "iPhone or iPad" where only one
+can (the USB cable's pairing); the iOS app's and the core's pairing words name the new item, and the
+checks that hold them changed with them. A device on this build facing Sill for Mac 0.5.1 is told
+"Pair a Device…", which that menu does not have. From the code review of 2026-10-19, in this
+branch: the core's remote dial uses the first connection that is ready (1.3 s against 10.0 s);
+Android lets held keys go on focus loss and sends ⇧Return, ⇧Tab and ⌥Delete as keys
+(`HardwareKeys`). docs/clients-plan.md's decision 11: a client's binary is never released on a
+`v*` tag or as the latest release (Sill.app's update check, the download link, release.yml). README
+gains "Other systems (in development)"; SECURITY.md and the issue forms name Android.
+**Untested, for Noah:** Keep Screen On on an iPhone, an iPad and an Android phone.
+
 **UI parity and foldables (2026-10-18, on `android-client`; docs/ui-parity.md).** The request: the
 Android, Windows and Linux apps at "1:1 visual and functional parity" with the Apple ones, reusing
 their tokens, and "all foldable phones, including the new 4:3 Z Fold 8". Nothing under iOSClient/,

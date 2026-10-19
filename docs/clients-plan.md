@@ -78,6 +78,13 @@ app is SwiftUI and UIKit. Only `Sources/StreamProtocol` (the wire) is shared. So
 9. **Scrolling:** a mouse wheel is a scroll gesture (began, deltas, ended after 120 ms still), so
    Mac apps rubber-band; fingers coast by the iPad's rule.
 10. **Package name:** `me.saffer.sill`, the iOS bundle ID. Version 0.6.0, build 1.
+11. **Releases of the apps in `clients/` never touch the Mac's.** Sill.app's update check reads
+    GitHub's latest release (`releases/latest`), the site's download page links that release's
+    `Sill.dmg`, and release.yml runs on every `v*` tag. So a client's binary, when one is
+    published, goes out on a tag of its own (`android-v0.6.0`), never `v*`, as a release that is
+    not marked latest (`gh release create --latest=false`): otherwise every Mac would be offered
+    an Android build and the download link would break. Nothing publishes one yet: clients.yml
+    keeps the debug APK as a run's artifact only.
 
 ## How it was checked (on this Linux machine, 2026-10-18)
 

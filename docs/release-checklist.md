@@ -1,7 +1,9 @@
 # Releasing Sill
 
 The order of work for putting the iOS app in the App Store and Sill for Mac on the web: part 1
-once, part 2 on every release. The texts and answers App Store Connect asks for, ready to paste,
+once, part 2 on every release. The apps in `clients/` are not released yet; when one is, its binary goes
+out on a tag of its own and never as the latest release (docs/clients-plan.md, decision 11), so
+nothing here, Sill.app's update check or the site's download link ever picks it up. The texts and answers App Store Connect asks for, ready to paste,
 are in `docs/app-store-metadata.md` ("metadata §N" below). The pages are in `site/` (plain HTML,
 no build step), `Scripts/release.sh` makes the notarized Mac downloads (the disk image `Sill.dmg`,
 with `Scripts/make-dmg.sh`, and the zip `Sill.zip`), and `Scripts/release-ios.sh` the iOS app's
