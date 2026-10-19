@@ -1,5 +1,5 @@
 # The apps that are not Swift (clients/, docs/clients-plan.md): the shared Kotlin core, the
-# Windows client, the Android app, and the Linux host. On pull requests and pushes to
+# Windows client, the Android app, and the Windows and Linux hosts. On pull requests and pushes to
 # main that touch them, the wire they speak (Sources/StreamProtocol) or the iOS app their design
 # comes from (iOSClient), and by hand. Nothing here signs or uses a secret.
 #
@@ -14,12 +14,14 @@
 #   included) and the debug APK.
 # - windows: the Windows client's tests on Windows (FFmpeg's Windows build), and its packaged
 #   runtime (jpackage's app image, no installer) running its self-test.
-# - hosts-linux: the host's shared rules against the Kotlin client (the status card's and menu's
+# - hosts-linux: the hosts' shared rules against the Kotlin client (the status card's and menu's
 #   words against Sill.app's, the QR code against python-qrcode's), the Linux host end to end on a
 #   real X server (Xvfb, openbox, xterm): pairing, x11grab and HEVC decoded to the terminal's colour,
 #   typing into it, Aa, close; its UI (the tray menu, Settings, the pairing window) drawn at 1x and
-#   2x in both appearances, kept as screenshots; then the packaged host's self-test. The host
-#   builds with JDK 25, which Gradle fetches (foojay).
+#   2x in both appearances, kept as screenshots; then the packaged host's self-test.
+# - hosts-windows: the hosts' shared rules on Windows, and the packaged Windows host's self-test
+#   (user32 windows and input, FFmpeg's GPL build encoding HEVC, the door's TLS; a gdigrab of the
+#   runner's screen reported). The hosts build with JDK 25, which Gradle fetches (foojay).
 #
 # Cost: free for a public repository; Linux and Windows minutes otherwise (about 10 minutes each).
 name: Clients
@@ -160,3 +162,23 @@ jobs:
           path: clients/host/build/ui-shots/
           if-no-files-found: warn
           retention-days: 14
+
+  hosts-windows:
+    runs-on: windows-2025
+    timeout-minutes: 30
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Use Java 21 for Gradle
+        run: echo "JAVA_HOME=$JAVA_HOME_21_X64" >> "$GITHUB_ENV"
+
+      - name: The hosts' rules on Windows
+        working-directory: clients
+        run: ./gradlew --no-daemon :host-core:test
+
+      - name: The packaged Windows host's self-test
+        working-directory: clients
+        run: |
+          ./gradlew --no-daemon :host:jpackage -Psill.jpackageType=app-image
+          host/build/jpackage/SillHost/SillHost.exe --self-test

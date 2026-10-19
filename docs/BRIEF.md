@@ -63,15 +63,16 @@ grid.
   paid extension. That is the one third-party runtime dependency, Windows only.
   Android uses MediaCodec and platform APIs alone. The Mac and iPad side is
   unchanged: Swift, Apple frameworks only.
-- Linux as a host too (2026-10-18, Noah: "Windows should also be a server. And
-  also Linux as a server."; docs/clients-plan.md, "Hosts"; Windows is its own
-  change, after this one): a Linux desktop on X11 streams its windows to the same
-  devices over the Mac's wire, door and pairing, in Kotlin (`clients/host-core`,
-  `clients/host`, JDK 25 and its foreign function API for Xlib and XTest).
+- Linux and Windows as hosts too (2026-10-18, Noah: "Windows should also be a
+  server. And also Linux as a server."; docs/clients-plan.md, "Hosts"): a Linux
+  desktop on X11 or a Windows PC streams its windows to the same devices over
+  the Mac's wire, door and pairing, in Kotlin (`clients/host-core`,
+  `clients/host`, JDK 25 and its foreign function API for Xlib, XTest and
+  user32).
   Encoding uses FFmpeg's GPL build, the only one with a software HEVC encoder
   (x265) for PCs without one in hardware, so a distributed host is GPLv3 as a
   whole while the source stays Apache-2.0. The Mac stays the reference host; the
-  PC host has no menus, virtual display or Direct Wireless.
+  PC hosts have no menus, virtual display or Direct Wireless.
 
 ## UI (mockups on the design canvas)
 

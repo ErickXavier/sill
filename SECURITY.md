@@ -1,7 +1,8 @@
 # Security
 
 Sill lets an iPhone, an iPad, an Android device or a Windows PC see and control
-a Mac, or a Linux PC with the host in development, so a flaw in it matters.
+a Mac, or a Windows or Linux PC with the hosts in development, so a flaw in it
+matters.
 If you find one, please report it privately.
 
 ## Reporting a problem
@@ -33,11 +34,12 @@ who has it, and the newest iPhone and iPad app.
   the Android app, including the device key it seals with the Android
   Keystore, and the Windows client (its key is a file in the user's profile
   until it is sealed with DPAPI).
-- The Linux host in `clients/host-core` and `clients/host`, in development and
-  not released: its door, pairing and trust list (the Mac's rules), what a
-  paired device can make it do (input into its windows, launching only an app
-  it listed, the clipboard), and its key and paired devices, kept in a 0600
-  file in the user's configuration folder.
+- The Windows and Linux hosts in `clients/host-core` and `clients/host`, in
+  development and not released: their door, pairing and trust list (the
+  Mac's rules), what a paired device can make them do (input into their
+  windows, launching only an app they listed, the clipboard), and their key
+  and paired devices, kept in a file in the user's own application data
+  (0600 on Linux) until it is sealed with DPAPI or a keyring.
 
 Known, and by design: with Require pairing off (Settings › Devices), any
 device on the Mac's own networks, one nearby while Direct Wireless Connection

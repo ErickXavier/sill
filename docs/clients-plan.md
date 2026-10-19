@@ -199,11 +199,12 @@ signing for the Windows installer (unsigned, SmartScreen warns).
 
 ## Hosts
 
-"Windows should also be a server. And also Linux as a server." A Linux computer on X11 now streams
-its windows to the iPhone and iPad app, the Android app and the Windows client, over the Mac's
-wire, door and pairing, so no client changed for it: a device lists the PC beside the Macs
-(`_sill._tcp`), asks to pair, types the code the PC shows or scans it, and streams. The Windows
-host is a change of its own on this one: it adds a platform, and the rest is shared.
+"Windows should also be a server. And also Linux as a server." A Windows or Linux (X11) computer
+now streams its windows to the iPhone and iPad app, the Android app and the Windows client, over
+the Mac's wire, door and pairing, so no client changed for it: a device lists the PC beside the
+Macs (`_sill._tcp`), asks to pair, types the code the PC shows or scans it, and streams. The Linux
+host came first (`host-linux`); the Windows host (`host-windows`) adds its platform, its MSI and
+its CI job, and shares the rest.
 
 ### Layout
 
@@ -219,10 +220,13 @@ host is a change of its own on this one: it adds a platform, and the rest is sha
   (Sill.app's StatusText and MenuBuilder rules, and every word), `QrCode`, and `HostPlatform`, the
   interface each operating system implements, with `CaptureRect` (a window's rectangle kept on the
   screen, for capture, input and the pointer alike).
-- `clients/host` (JDK 25): the platform and the app. `LinuxPlatform` (Xlib and XTest through the
+- `clients/host` (JDK 25): the platforms and the app. `LinuxPlatform` (Xlib and XTest through the
   JDK's foreign function API: EWMH window lists and messages, XTest input, keys by evdev code,
-  text by keysym), `FfmpegVideo` (x11grab of the window's rectangle into HEVC: NVENC, Quick Sync or
-  VAAPI, else x265), `HostMain` (`--headless`, `--pair`, `--port`, `--self-test`,
+  text by keysym), `WindowsPlatform` (user32, dwmapi, shell32 and kernel32 the same way: z-order
+  windows without tool, owned or cloaked ones, SendInput by scan code and Unicode, per-monitor DPI
+  aware, an app launched only through ShellExecuteW and only if it is in the list),
+  `FfmpegVideo` (x11grab or gdigrab of the window's rectangle into HEVC: NVENC, Quick Sync, VAAPI
+  or Media Foundation, else x265), `HostMain` (`--headless`, `--pair`, `--port`, `--self-test`,
   `--input-probe`), `ui/` (Sill.app's status card and menu as a tray popup, Settings, the pairing
   window with its QR code, the log; docs/ui-parity.md) and `HostStore` (a 0600 JSON file, as the
   Windows client keeps its key).
@@ -240,18 +244,19 @@ host is a change of its own on this one: it adds a platform, and the rest is sha
   client keeps the LGPL build.
 - **The JDK's foreign function API, not JNI or JNA**: no native code of Sill's own and no binding
   dependency; JDK 25 (the LTS; the API is final from 22). Gradle fetches it (foojay).
-- **Capture of the window's rectangle on the screen** (x11grab), not of the window itself: what the
+- **Capture of the window's rectangle on the screen** (x11grab, gdigrab), not of the window itself: what the
   person sees, the picked window raised first, as the Mac raises it in regular mode. A window
   covered on the PC shows what covers it; a move restarts the capture at the new place. No virtual
   display.
 - **Input**: positions as on the Mac (fractions of the frame); ⌘ and ⌃ are Ctrl, ⌥ Alt; ⌘Space the
-  Super key, ⌘Tab Alt+Tab, ⌘Q Alt+F4, ⌘←/→ Home/End, ⌥←/→ by word; keys by physical position; text
+  Windows or Super key, ⌘Tab Alt+Tab, ⌘Q Alt+F4, ⌘←/→ Home/End, ⌥←/→ by word; keys by physical position; text
   as Unicode whatever the layout.
-- **Gestures** as the PC's shortcuts: Super, Ctrl+Alt+arrows, Super+A, Super+D.
+- **Gestures** as the PC's shortcuts: Windows, Task View, virtual desktops, Start, Win+D; Linux,
+  Super, Ctrl+Alt+arrows, Super+A, Super+D.
 - **The words**: Sill.app's, with "this PC" for "this Mac" and "device" for any device; the
   devices still say "Add a Mac…", which also adds a PC.
 - **Not done**: the Mac's menus (kinds 24, 25, 27 are skipped, so no Menus button shows), the
-  virtual display, Direct Wireless, the cable rule, a keyring for the key, Wayland's own windows
+  virtual display, Direct Wireless, the cable rule, DPAPI or a keyring for the key, Wayland's own windows
   (X11 and XWayland only), multiple monitors (the primary screen is the Desktop).
 
 ### How it was checked (this Linux machine, 2026-10-18 and 19)
@@ -280,10 +285,25 @@ host is a change of its own on this one: it adds a platform, and the rest is sha
   store, the platform, the door's TLS, a capture of the screen), `--headless --pair` advertises,
   listens on 7455, prints the code and the link and writes its key 0600; the window renders.
   `--input-probe` (the platform's input into a text field of its own) reads back "Sill é✓ aB".
+- **The Windows platform under Wine 9** (Temurin 25 for Windows, the Windows FFmpeg natives, Xvfb):
+  the encoder (x265 forced: Wine's Quick Sync and Media Foundation stubs stall the encoder probe
+  past its 10 s), the window list (Notepad, by its program and title, its DWM frame), the screen and
+  the pointer, a gdigrab capture encoded, and `--input-probe` passed: SetCursorPos, a click, Unicode
+  SendInput, scan-code keys with ⇧ and Backspace (which Wine delivers only with the virtual key
+  filled in beside the scan code, now done). The door and TLS cannot run under Wine: the JDK's
+  NetworkInterface calls a function Wine lacks while seeding SecureRandom (a native crash in
+  kernelbase); that code is the same Java on both systems and runs on Linux above.
 
 ### Untested, for Noah
 
-- **The iPhone, iPad and Android apps against this host**: only the Kotlin client has run against
-  it. L1: on a Linux PC with Xorg (not Wayland), the iPad lists the PC, pairs, streams a window,
+- **The Windows host has never run on Windows** (no Windows on this machine; Wine above is the
+  nearest). clients.yml's hosts-windows job runs its self-test on GitHub's Windows runner on a pull
+  request. On a PC: H1 the self-test; H2 the window list against what the taskbar shows; H3 pairing
+  from the iPad (the code typed); H4 a window streamed (NVENC, Quick Sync or Media Foundation
+  chosen, or x265), typing and clicks landing, ⌘C and ⌘V, Aa; H5 a 4K screen at 150 % scaling
+  (positions and sizes in physical pixels); H6 the firewall's prompt on first launch; H7 the MSI;
+  a LaunchApp from a device opens only an app the host listed.
+- **The iPhone, iPad and Android apps against these hosts**: only the Kotlin client has run
+  against them. L1: on a Linux PC with Xorg (not Wayland), the iPad lists the PC, pairs, streams a window,
   types; L2 a GPU encoder (NVENC or VAAPI) chosen; L3 GNOME's and KDE's overview from the
   three-finger swipe.

@@ -24,9 +24,8 @@ const val HOST_VERSION = "0.6.0"
 
 private fun isWindows() = System.getProperty("os.name").lowercase().startsWith("windows")
 
-/** This operating system's platform: Linux with X11 (Windows has a platform of its own, not in this build). */
-fun platform(log: (String) -> Unit): HostPlatform =
-    if (isWindows()) throw UnsupportedOperationException("this build has no Windows platform") else LinuxPlatform(log)
+/** This operating system's platform: Windows, or Linux with X11. */
+fun platform(log: (String) -> Unit): HostPlatform = if (isWindows()) WindowsPlatform(log) else LinuxPlatform(log)
 
 /** The log: stdout, the window's log, and host.log beside the settings (started afresh past 10 MB). */
 class HostLog(dir: File = HostStore.defaultDir()) {
