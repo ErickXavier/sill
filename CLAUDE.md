@@ -8,12 +8,25 @@ Formerly winstream; the folder still carries the old name.
 
 ## Current step
 
+**The Windows host (2026-10-18, review fixes 2026-10-19; branch `host-windows` on `host-linux`;
+docs/clients-plan.md, "Hosts").** The Linux host's door, pairing, session and UI on Windows 10 or
+11: `WindowsPlatform` (user32/dwmapi/shell32/kernel32 by FFM, scan codes, KEYEVENTF_UNICODE with
+the virtual key beside, per-monitor DPI aware; LaunchApp only for a listed app, through
+ShellExecuteW, never `cmd /c start`), `FfmpegVideo`'s gdigrab and Media Foundation, the Windows
+natives of FFmpeg's GPL build, jpackage's MSI (WiX 3, per user), `HostMain`'s `platform()` choosing
+it, and clients.yml's hosts-windows job (host-core's tests on Windows and the packaged host's
+self-test). The key and settings are `%APPDATA%\Sill Host\host.json` (DPAPI not yet).
+- Verified: under Wine 9 (Windows JDK 25): window list, frame, pointer, gdigrab capture,
+  `--input-probe` (SendInput Unicode and scan codes); not the door (the JDK's NetworkInterface
+  crashes in Wine). The Linux host's tests cover the shared code.
+- **Untested, for Noah:** the Windows host on Windows (docs/clients-plan.md's H1–H7; hosts-windows
+  runs on a pull request), the tray popup on Windows 11 (docs/ui-parity.md's H8).
+
 **The Linux host (2026-10-18, review fixes and words 2026-10-19; branch `host-linux` on
 `client-windows`; docs/clients-plan.md, "Hosts").** Noah: "Windows should also be a server. And also
 Linux as a server." A Linux PC on X11 streams its windows to the same devices over the Mac's wire,
 door and pairing; no client changed. Nothing under Sources/, iOSClient/ or the Mac's build changed.
-The Windows host is the next change (`host-windows`): it adds `WindowsPlatform`, the MSI and its CI
-job, and this build's `platform()` says Windows is not in it.
+The Windows host is the next change (`host-windows`), above.
 - `clients/host-core` (JDK 17, the core alone): `StreamHost` (the coordinator, on one thread like the
   main actor: the catalog in the Mac's connect order, select, viewport fps and Aa's resize, kinds 16/17
   with the menu's values and the 4-a-second cap, kind 18 signed, clipboard, gestures, the PC's pointer
@@ -5604,8 +5617,8 @@ good.
   `strip_remote.py`, `mdns_fixture.py` (python-zeroconf), `hevc_sample.sh` (libx265).
   `.github/workflows/clients.yml` runs them on Linux, Android and Windows. `host-core` (the door,
   pairing and session of any host that is not the Mac, over a `HostPlatform`) and `host` (the Linux
-  X11 platform by the JDK's foreign function API, FFmpeg GPL capture and HEVC, the window,
-  jpackage) are the Linux host (docs/clients-plan.md, "Hosts").
+  X11 and Windows platforms by the JDK's foreign function API, FFmpeg GPL capture and HEVC, the
+  window, jpackage) are the Windows and Linux hosts (docs/clients-plan.md, "Hosts").
 - `docs/BRIEF.md` — product decisions, competition, scope, risks.
 - `docs/DEVELOPMENT.md` — building, running and testing from source; the
   README's developer material until 2026-09-25, so a plan's "README" means a
@@ -5758,7 +5771,7 @@ Scripts/release-ios.sh --bump --upload  # Noah: the next build to TestFlight (do
 Scripts/make-dmg.sh --sign - .build/Sill.app .build/Sill.dmg   # the download's disk image of any build, ad hoc (release.sh makes the real one)
 python3 -m http.server 8000 --directory site   # the website at http://localhost:8000
 cd clients && ./gradlew :core:test :desktop:test    # the Windows and Android clients' core and Windows client (JDK 17+; docs/clients-plan.md)
-cd clients && ./gradlew :host-core:test && xvfb-run -a ./gradlew :host:test   # the Linux host (JDK 25 fetched; openbox and xterm for the end to end)
+cd clients && ./gradlew :host-core:test && xvfb-run -a ./gradlew :host:test   # the Windows and Linux hosts (JDK 25 fetched; openbox and xterm for the end to end)
 cd clients && xvfb-run -a ./gradlew :desktop:uiTest  # the Windows client's real windows against the model Mac
 clients/wire-vectors/generate.sh --verify && clients/wire-vectors/generate.sh --check   # the Kotlin wire against the Mac's Swift types
 Scripts/encoder-check/run.sh            # the encoder checks that never touch an encoder (safe while Sill.app streams)
@@ -6236,7 +6249,7 @@ device keeps working with Macs from the first public build on, or each says why
   in `docs/BRIEF.md` says so. Zero operating costs is a hard rule. `clients/`
   (Windows and Android) is Kotlin: the core uses the standard library alone, the
   Windows client FFmpeg (the BRIEF's decision), the Android app platform APIs, the
-  Linux host FFmpeg's GPL build and the OS's libraries through the
+  Windows and Linux hosts FFmpeg's GPL build and the OS's libraries through the
   JDK's foreign function API.
 - Threading in the spike is by hand: capture queue → VT callback thread →
   network queue. Keep it explicit and commented rather than reaching for actors

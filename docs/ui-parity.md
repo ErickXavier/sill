@@ -15,7 +15,7 @@ the iOS app's own, generated or checked by a tool, so a change on the iOS side f
 other side follows.
 
 - The clients (Android, Windows) match the iOS and iPadOS app.
-- The PC hosts (Linux; Windows after it) match Sill.app, the Mac's menu bar app.
+- The PC hosts (Linux, Windows) match Sill.app, the Mac's menu bar app.
 
 ## How the iOS app's design reaches the other apps
 
@@ -154,8 +154,7 @@ finger scroll over the picture.
 
 ## The PC hosts (`clients/host-core`, `clients/host`)
 
-The PC hosts (Linux, and Windows with the same `host/ui` in the change after it) match Sill.app,
-the Mac's menu bar app, adapted to a PC's tray:
+The Windows and Linux hosts match Sill.app, the Mac's menu bar app, adapted to a PC's tray:
 
 - `HostStatusText` (host-core, pure): StatusText.swift's headline order, the source row ("W×H · N
   of M fps · X Mbps", "M fps, still", the route with one device), the device rows ("–" for a second

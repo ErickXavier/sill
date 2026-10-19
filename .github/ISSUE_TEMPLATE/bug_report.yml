@@ -28,7 +28,7 @@ body:
     id: mac
     attributes:
       label: Your Mac (or PC host) and its system
-      placeholder: MacBook Air (M3), macOS 26.1; or a Linux PC, Ubuntu 24.04 on X11
+      placeholder: MacBook Air (M3), macOS 26.1; or a PC host, Windows 11 24H2 or Ubuntu 24.04 on X11
     validations:
       required: true
   - type: input
@@ -76,7 +76,7 @@ body:
       label: Sill's log on your Mac or PC
       description: >-
         Optional. Show Log… in the Sill menu, or ~/Library/Logs/Sill/Sill.log (on a Linux host,
-        ~/.config/sill-host/host.log). Paste only the lines
+        ~/.config/sill-host/host.log; on a Windows host, host.log in %APPDATA%\Sill Host). Paste only the lines
         around the problem. The log names your windows, your devices and their network addresses,
         and this issue is public: take out what you don't want to share, or email the lines to
         support@getsill.app instead.
