@@ -770,6 +770,36 @@ the passwords of service `me.saffer.sill.remote`. Deleting those makes that
 build new to every device, which must pair again. On the device, a paired
 Mac's row has Forget in its menu (touch and hold).
 
+## The Android client
+
+`clients/` is a Gradle build of Sill's clients that are not Swift (docs/clients-plan.md has the
+design, the decisions and what is verified): `core` (the wire, pairing, TLS with pinned keys,
+discovery and the session, in Kotlin with no dependency) and `android` (MediaCodec, platform APIs
+only, minSdk 29). Nothing in it touches the Mac or iPad builds. It needs a JDK 17 or later;
+`./gradlew` fetches Gradle 8.14.3 (checksum pinned). `:android` is built only where an Android SDK is
+configured (`ANDROID_HOME`, or `sdk.dir` in `clients/local.properties`).
+
+```
+cd clients
+./gradlew :core:test                      # the core: the wire vectors, crypto, TLS (with openssl), mDNS, the session, the whole client against the model Mac
+SILL_LIVE_MDNS=1 ./gradlew :core:test     # also a live python-zeroconf responder on this machine's network (pip install zeroconf)
+./gradlew :android:lintDebug :android:assembleDebug  # android/build/outputs/apk/debug/android-debug.apk
+adb install -r android/build/outputs/apk/debug/android-debug.apk   # onto a phone or tablet with USB debugging on
+```
+
+The wire's vectors come from the Mac's own code: `clients/wire-vectors/generate.sh` compiles
+Sources/StreamProtocol with swiftc (Xcode, or swift.org's toolchain on Linux) and writes
+`clients/core/src/test/resources/sill/vectors.json`. A change to a payload in StreamProtocol
+regenerates it (commit the result) and updates `Payloads.kt` to match; `generate.sh --verify` fails
+until both are done, and `generate.sh --check` decodes the Kotlin core's encodings (written by
+`:core:test`) with the Mac's types. `mdns_fixture.py` and `hevc_sample.sh` remake the other fixtures.
+CI's `clients.yml` runs all of it and the Android build.
+
+To try it against Sill.app: the Mac and the phone on the same network, tap the Mac's row ("Not
+paired"), and type the code the Mac's pairing window shows. Away from home: Add a Mac… with the
+address and code from Pair iPhone or iPad…. Against a test host on this Mac, `SillHost --synthetic
+--pairing` is the TLS home door.
+
 ## Test tools
 
 None of these needs a device. `CLAUDE.md`, Build and run, has the complete
