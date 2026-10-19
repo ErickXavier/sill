@@ -214,7 +214,7 @@ class ClientTest {
         fun o(r: String?, saved: Boolean = true, msg: String? = null, rc: Boolean? = null) =
             GoodbyePolicy.outcome(r?.let { Goodbye(it, msg, if (it == "update") "1.2" else null, rc) }, "Mac", "PC", saved)
         assertEquals("Mac disconnected. Sill will reconnect when it can reach it.", o(null).text)
-        assertEquals("Mac disconnected. It will reconnect when the Mac is back.", o(null, saved = false).text)
+        assertEquals("Mac disconnected. It will reconnect when the host is back.", o(null, saved = false).text)
         assertEquals(false, o("removed").reconnect)
         assertEquals("Mac is already serving 8 devices.", o("busy").text)
         assertEquals("Update Sill on this PC to keep using Mac. It needs version 1.2 or later.", o("update").text)

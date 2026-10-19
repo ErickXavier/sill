@@ -136,8 +136,8 @@ class Pairing(private val identity: Identity, private val client: ClientInfo, pr
             it.output.flush()
             val reader = MessageReader(it.input, cap = { StreamMessage.MAX_PAIRING_PAYLOAD.toLong() })
             val m = try { reader.next() } catch (e: IOException) { throw SillTls.classifyAfterHandshake(e) }
-                ?: throw IOException("the Mac closed the pairing connection without an answer")
-            if (m.kind != Kind.PAIR_RESULT || m.payload.isEmpty()) throw IOException("the Mac answered with kind ${m.kind}")
+                ?: throw IOException("the host closed the pairing connection without an answer")
+            if (m.kind != Kind.PAIR_RESULT || m.payload.isEmpty()) throw IOException("the host answered with kind ${m.kind}")
             return Exchange(PairResult.fromJson(JsonObj.parse(m.payload)), it.peerFingerprint ?: throw IOException("no Mac key"))
         }
     }
@@ -190,10 +190,10 @@ class Pairing(private val identity: Identity, private val client: ClientInfo, pr
         val rk = r.recognitionKey?.let(Base64Url::decode)
         if (proofM == null || !PairingProof.isValidMacProof(proofM, key, ex.macFingerprint, identity.fingerprint) ||
             r.macID != MacId.make(ex.macFingerprint) || rk == null || rk.size != 32) {
-            return PairOutcome.Failed(IOException("the Mac's proof did not check"), "That Mac couldn’t prove it showed the code. Nothing was saved.")
+            return PairOutcome.Failed(IOException("the host's proof did not check"), "That host couldn’t prove it showed the code. Nothing was saved.")
         }
         return PairOutcome.Paired(address = address, mac = SavedMac(macID = r.macID, fingerprint = Base64Url.encode(ex.macFingerprint),
-            name = SafeText.label(r.name ?: "").ifEmpty { "Mac" }, recognitionKey = Base64Url.encode(rk), bonjourName = bonjourName,
+            name = SafeText.label(r.name ?: "").ifEmpty { "Host" }, recognitionKey = Base64Url.encode(rk), bonjourName = bonjourName,
             pairedAt = clock.wall(), method = method))
     }
 
@@ -204,29 +204,29 @@ class Pairing(private val identity: Identity, private val client: ClientInfo, pr
 object PairingWords {
     fun codeProblem(p: PairingCode.Problem) = when (p) {
         PairingCode.Problem.LENGTH -> "A code has 12 digits."
-        PairingCode.Problem.TYPO -> "That code has a typo. Check it against your Mac."
+        PairingCode.Problem.TYPO -> "That code has a typo. Check it against your host."
     }
 
     fun refusal(r: PairResult, noun: String): String {
         r.unknownReasonMessage?.let { return it }
         return when (r.reason) {
             PairResult.CODE -> "That code didn’t match." + (r.triesLeft?.let { " $it ${if (it == 1) "try" else "tries"} left." } ?: "")
-            PairResult.CLOSED -> "The Mac isn’t showing a code. Choose Pair a Device… in Sill on the Mac."
-            PairResult.EXPIRED -> "That code expired. Choose New Code on the Mac."
-            PairResult.STOPPED -> "Too many wrong codes. Choose New Code on the Mac."
-            PairResult.BUSY -> "The Mac is busy. Try again in a moment."
-            PairResult.SHOWN -> "Enter the code your Mac shows now, or paste its pairing link."
-            PairResult.OPEN_ON_MAC -> "On the Mac, choose Pair a Device… in Sill’s menu, then enter its code here."
-            PairResult.LOCKED -> "Unlock the Mac, then try again."
-            else -> "The Mac didn’t pair this $noun."
+            PairResult.CLOSED -> "The host isn’t showing a code. Choose Pair a Device… in Sill on the host."
+            PairResult.EXPIRED -> "That code expired. Choose New Code on the host."
+            PairResult.STOPPED -> "Too many wrong codes. Choose New Code on the host."
+            PairResult.BUSY -> "The host is busy. Try again in a moment."
+            PairResult.SHOWN -> "Enter the code your host shows now, or paste its pairing link."
+            PairResult.OPEN_ON_MAC -> "On the host, choose Pair a Device… in Sill’s menu, then enter its code here."
+            PairResult.LOCKED -> "Unlock the host, then try again."
+            else -> "The host didn’t pair this $noun."
         }
     }
 
     fun dialFailure(e: IOException) = when (e) {
-        is DialFailure.PinRefused -> "That isn’t the Mac the code or link came from."
-        is DialFailure.KeyRefused -> "The Mac refused this device."
-        is DialFailure.NotSill -> "That address isn’t a Mac running Sill, or its Sill is too old to pair. Update Sill on the Mac."
-        is DialFailure.Unreachable -> "The Mac didn’t answer. Check that Sill is open on it and that both are on the same network."
+        is DialFailure.PinRefused -> "That isn’t the host the code or link came from."
+        is DialFailure.KeyRefused -> "The host refused this device."
+        is DialFailure.NotSill -> "That address isn’t a host running Sill, or its Sill is too old to pair. Update Sill on the host."
+        is DialFailure.Unreachable -> "The host didn’t answer. Check that Sill is open on it and that both are on the same network."
         else -> "Pairing failed: ${e.message}"
     }
 }

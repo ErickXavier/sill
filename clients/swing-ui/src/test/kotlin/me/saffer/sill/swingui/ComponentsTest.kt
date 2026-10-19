@@ -50,9 +50,9 @@ class ComponentsTest {
     @Test fun wrappedLinesKeepToTheWidth() {
         val img = BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB)
         val fm = img.createGraphics().getFontMetrics(SillSwing.font(Type.footnote))
-        val lines = Wrap.lines(fm, "Lets devices reach the Mac without a shared Wi‑Fi network, the way AirDrop does.", 150.0)
+        val lines = Wrap.lines(fm, "Lets devices reach the host without a shared Wi‑Fi network, the way AirDrop does.", 150.0)
         assertTrue(lines.size > 1 && lines.all { fm.stringWidth(it) <= 150 }, "$lines")
-        assertEquals("Lets devices reach the Mac without a shared Wi‑Fi network, the way AirDrop does.", lines.joinToString(" "))
+        assertEquals("Lets devices reach the host without a shared Wi‑Fi network, the way AirDrop does.", lines.joinToString(" "))
     }
 
     @Test fun rowsAreTheirHeightsSixApart() {

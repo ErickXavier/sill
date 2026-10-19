@@ -60,9 +60,9 @@ sealed class Trust {
 /** Why a dial failed, in the words the clients show (RemoteTLS.swift's statuses, by meaning). */
 sealed class DialFailure(message: String, cause: Throwable? = null) : IOException(message, cause) {
     /** The Mac presented another key than the pin (-9808): set up again, or not the Mac paired with. */
-    class PinRefused(val seen: ByteArray?) : DialFailure("the Mac presented another key${seen?.let { " (${MacId.shortName(it)})" } ?: ""}")
+    class PinRefused(val seen: ByteArray?) : DialFailure("the host presented another key${seen?.let { " (${MacId.shortName(it)})" } ?: ""}")
     /** The Mac refused this client's key (-9825/-9829): it removed this device, or requires pairing. */
-    class KeyRefused(cause: Throwable?) : DialFailure("the Mac refused this device's key", cause)
+    class KeyRefused(cause: Throwable?) : DialFailure("the host refused this device's key", cause)
     /** Not Sill's TLS door: no ALPN in common, or not TLS 1.3 (-9836/-9838). */
     class NotSill(cause: Throwable?) : DialFailure("not a Sill door", cause)
     /** No answer within the dial timeout, refused, unreachable. */

@@ -670,7 +670,7 @@ connect (TLS 1.3, each end pinned to the other's key).
    this network's address.
 2. Pair each device once, at home or away (a device already paired at home is
    paired for this too): Pair a Device… in the Sill menu shows a QR code
-   and a 12-digit code for five minutes. On the device, tap Add a Mac… at the
+   and a 12-digit code for five minutes. On the device, tap Add a Host… at the
    bottom of the connect screen and point it at the code, or choose Enter Code
    Instead and type the address and the code the window shows. With Tailscale,
    the address is the Mac's MagicDNS name or the Tailscale IP address under it;
@@ -824,7 +824,7 @@ CI's `clients.yml` runs all of it, the Android build and the Windows client's te
 
 To try a client against Sill.app: the Mac and the PC or phone on the same network, the client's
 Connect on the Mac's row ("Not paired"), and the code the Mac's pairing window shows. Away from
-home: Add a Mac… with the address and code from Pair a Device…. Against a test host on this
+home: Add a Host… with the address and code from Pair a Device…. Against a test host on this
 Mac, `SillHost --synthetic --pairing` is the TLS home door; the clients do not dial the CLI's plain
 door unless `SILL_DEV_PLAIN=1` (Windows client).
 

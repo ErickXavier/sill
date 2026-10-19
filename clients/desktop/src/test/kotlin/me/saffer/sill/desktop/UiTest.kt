@@ -108,7 +108,7 @@ class UiTest {
             if (!hiDpi) {
                 val b = edt { SwingUtilities.convertRectangle(app.connect.addMac.parent, app.connect.addMac.bounds, app.connect) }
                 click(robot, screen(app.connect, b.centerX, b.centerY))
-                waitFor(2.0, "Add a Mac's card") { app.connect.card == ConnectView.Card.Address && app.connect.address.isShowing }
+                waitFor(2.0, "Add a Host's card") { app.connect.card == ConnectView.Card.Address && app.connect.address.isShowing }
                 Thread.sleep(300)
                 shot(robot, "addmac", edt { app.frame.bounds })
                 robot.keyPress(KeyEvent.VK_ESCAPE); robot.keyRelease(KeyEvent.VK_ESCAPE)
@@ -178,13 +178,13 @@ class UiTest {
                 assertEquals(listOf("Code", "File", "Edit", "Selection", "View", "Go", "Run", "Terminal", "Window", "Help"), titles)
                 val file = edt { popup.components.filterIsInstance<javax.swing.JMenu>()[1] }
                 click(robot, edt { Point(file.locationOnScreen.x + 20, file.locationOnScreen.y + file.height / 2) })
-                waitFor(4.0, "File's items from the Mac") { file.menuComponents.any { (it as? javax.swing.JMenuItem)?.text?.trim() == "Save" } }
+                waitFor(4.0, "File's items from the host") { file.menuComponents.any { (it as? javax.swing.JMenuItem)?.text?.trim() == "Save" } }
                 Thread.sleep(400)
                 shot(robot, "menus", edt { Rectangle(stream.contentPane.locationOnScreen, stream.contentPane.size) })
                 val save = edt { file.menuComponents.first { (it as? javax.swing.JMenuItem)?.text?.trim() == "Save" } as javax.swing.JMenuItem }
                 click(robot, edt { Point(save.locationOnScreen.x + 20, save.locationOnScreen.y + save.height / 2) })
                 val press = host.latestSession()!!.presses.poll(4, java.util.concurrent.TimeUnit.SECONDS)
-                assertEquals("2.6", press?.id, "Save chosen on the Mac")
+                assertEquals("2.6", press?.id, "Save chosen on the host")
                 assertEquals("Save", press?.title)
             }
 
@@ -211,7 +211,7 @@ class UiTest {
                 val b = stream.settings.bounds
                 near(Rect(want.x, want.y, want.width, b.height.toDouble()), b, "the Settings panel")
                 assertTrue(b.height <= want.height + 1 && b.height > 200, "the panel's height ${b.height} of at most ${want.height}")
-                assertTrue(stream.settings.body.componentCount >= 5, "the Mac's settings rows")
+                assertTrue(stream.settings.body.componentCount >= 5, "the host's settings rows")
             }
             if (!hiDpi) {
                 shot(robot, "settings", edt { Rectangle(stream.contentPane.locationOnScreen, stream.contentPane.size) })
@@ -260,7 +260,7 @@ class UiTest {
                 Thread.sleep(300)
                 for (k in listOf(KeyEvent.VK_H, KeyEvent.VK_I)) { robot.keyPress(k); robot.keyRelease(k) }
                 robot.keyPress(KeyEvent.VK_ESCAPE); robot.keyRelease(KeyEvent.VK_ESCAPE)
-                waitFor(5.0, "input at the Mac") { hs.all.count { it.kind == Kind.INPUT } >= 6 }
+                waitFor(5.0, "input at the host") { hs.all.count { it.kind == Kind.INPUT } >= 6 }
                 Thread.sleep(300)
                 val inputs = hs.all.filter { it.kind == Kind.INPUT }.map { InputEvent.fromJson(JsonObj.parse(it.payload)) }
                 val down = inputs.filterIsInstance<InputEvent.Pointer>().first { it.action == PointerAction.LEFT_DOWN }

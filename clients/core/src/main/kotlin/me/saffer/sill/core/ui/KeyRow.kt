@@ -19,7 +19,7 @@ object KeyRow {
         /** A latching modifier: the cap's word and the bit it holds. */
         data class Modifier(val title: String, val bit: Long, override val label: String) : Key()
         data object Keyboard : Key() { override val label = "Show the keyboard" }
-        data object Spotlight : Key() { override val label = "Open Spotlight on the Mac" }
+        data object Spotlight : Key() { override val label = "Open search on the host" }
     }
 
     enum class Direction { Left, Down, Up, Right }

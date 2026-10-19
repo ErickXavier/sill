@@ -796,7 +796,7 @@ class StreamRoot(context: Context) : ViewGroup(context) {
  * keyboard types into, as text (the Mac's layout never re-maps what was typed), backspace and Enter.
  */
 class KeyInputView(private val activity: StreamActivity) : View(activity) {
-    init { isFocusable = true; isFocusableInTouchMode = true; contentDescription = "The Mac's screen" }
+    init { isFocusable = true; isFocusableInTouchMode = true; contentDescription = "The host's screen" }
 
     override fun onTouchEvent(e: MotionEvent): Boolean {
         if (e.actionMasked == MotionEvent.ACTION_UP) performClick()

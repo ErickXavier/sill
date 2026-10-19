@@ -56,7 +56,7 @@ ledger.pick(...) }`), so the ledger and the Mac's answer always agree.
 ## Android (`clients/android`)
 
 At parity, from the shared layer: always dark on black, 1 pt = 1 dp, the type capped at the iOS
-app's largest size; the connect screen (rows, Add a Mac… as a card in the column, the footer); the
+app's largest size; the connect screen (rows, Add a Host… as a card in the column, the footer); the
 stream screen at `StreamLayout`'s rects: the landscape bar, the window strip (halo, badge, fade;
 hold for the lights, keep holding to reorder, with the iOS springs), the Aa ruler, the Apps
 drawer, the Settings panel with Disconnect at its foot, the phone's rows, keys and trackpad, the
@@ -134,7 +134,7 @@ segmented control, switch, footnote, callout), the trackpad well (driving `PadTr
 behind sheets, a dark text field, dark scrollbars, and `Animator` on the core's curves. The stream
 window places every control at `StreamLayout.of(...)`'s rect (the landscape bar, and the halves in
 a tall window), opens and closes everything through `StreamUi`, and shows the `SettingsLedger`'s
-view; the connect window is the iOS connect screen with Add a Mac… as a card in the column.
+view; the connect window is the iOS connect screen with Add a Host… as a card in the column.
 
 Windows' own: the native frame and its buttons kept; Esc closes the ruler, the lights, the drawer,
 the panel, then goes to the Mac; Tab moves through the bar with a focus ring only then; 1 pt = 1

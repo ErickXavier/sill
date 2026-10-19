@@ -16,9 +16,9 @@ object Copy {
     const val closeAppList = "Close the app list"
     const val showKeyboard = "Show the keyboard"
     const val hideKeyboard = "Hide the keyboard"
-    const val showDesktop = "Show the full Mac desktop"
+    const val showDesktop = "Show the host’s whole desktop"
     const val closeSettings = "Close settings"
-    fun settingsFor(mac: String) = "Settings for ${mac.ifEmpty { "the Mac" }}"
+    fun settingsFor(mac: String) = "Settings for ${mac.ifEmpty { "the host" }}"
     const val textSize = "Text size"
     fun textSizeValue(scale: Double?) = "${TextScale.label(scale ?: 1.0)} times"
 
@@ -39,22 +39,22 @@ object Copy {
     fun windows(count: Int) = if (count == 1) "1 window" else "$count windows"
 
     // The connect screen (ConnectScreen).
-    const val connectTitle = "Connect to a Mac"
-    const val addMacTitle = "Add a Mac"
-    const val addMac = "Add a Mac…"
+    const val connectTitle = "Connect to a Host"
+    const val addMacTitle = "Add a Host"
+    const val addMac = "Add a Host…"
     const val searchNearby = "Search Nearby"
     const val alsoLookingNearby = "Also looking nearby"
-    fun nearbyHint(device: String) = "Your Mac has to be on the same Wi‑Fi network as this $device, or have Direct Wireless Connection turned on in Sill. Away from home, add it once with a code from your Mac."
-    const val needsMacApp = "Needs the free Sill app on your Mac."
+    fun nearbyHint(device: String) = "Your host has to be on the same Wi‑Fi network as this $device, or have Direct Wireless Connection turned on in Sill. Away from home, add it once with a code from your host."
+    const val needsMacApp = "Needs the free Sill app on your computer."
     fun getItAt(site: String) = "Get it at $site"
     const val support = "Support"
     const val privacyPolicy = "Privacy Policy"
     const val updateInAppStore = "Update Sill in the App Store"
 
     // The Add a Mac card (AddMacCard).
-    const val addMacPairOnce = "Pair once, and Sill reaches your Mac from anywhere, through your VPN or the internet."
-    const val addMacTyped = "Type the address and code that Sill shows on your Mac."
-    const val addMacTypedShort = "Type the address and code from your Mac."
+    const val addMacPairOnce = "Pair once, and Sill reaches your host from anywhere, through your VPN or the internet."
+    const val addMacTyped = "Type the address and code that Sill shows on your host."
+    const val addMacTypedShort = "Type the address and code from your host."
     const val enterCodeInstead = "Enter Code Instead"
     const val pair = "Pair"
     const val cancel = "Cancel"
@@ -67,5 +67,5 @@ object Copy {
  */
 object PlatformCopy {
     const val usePairingLink = "Use a Pairing Link Instead"
-    const val pastePairingLink = "Paste the pairing link from your Mac’s Sill."
+    const val pastePairingLink = "Paste the pairing link from your host’s Sill."
 }

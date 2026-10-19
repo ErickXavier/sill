@@ -218,9 +218,9 @@ ANCHORED = [
     ("footHeight", "HostSettingsPanel.swift", r"Label\(\"Disconnect\", systemImage: \"xmark\.circle\"\)\.lineLimit\(1\)\n\s*\}\n\s*\.frame\(maxWidth: \.infinity, minHeight: ([\d.]+)", "Disconnect, the panel's pinned foot"),
     ("pendingDelay", "HostSettingsPanel.swift", r"let wait = ([\d.]+) - \(ProcessInfo", "seconds a pick waits before its spinner shows"),
     # The connect screen.
-    ("connectTitleSize", "ContentView.swift", r"Text\(title\)\n\s*\.font\(\.system\(size: ([\d.]+), weight: \.semibold\)\)", "\"Connect to a Mac\" (semibold)"),
+    ("connectTitleSize", "ContentView.swift", r"Text\(title\)\n\s*\.font\(\.system\(size: ([\d.]+), weight: \.semibold\)\)", "\"Connect to a Host\" (semibold)"),
     ("connectStatusSize", "ContentView.swift", r"Text\(client\.status\)\n\s*\.font\(\.system\(size: ([\d.]+)\)\)", "the status line"),
-    ("connectLinkSize", "ContentView.swift", r"Text\(\"Add a Mac…\"\)\n\s*\.font\(\.system\(size: ([\d.]+), weight: \.semibold\)\)", "Add a Mac… and the other accent lines (semibold)"),
+    ("connectLinkSize", "ContentView.swift", r"Text\(\"Add a Host…\"\)\n\s*\.font\(\.system\(size: ([\d.]+), weight: \.semibold\)\)", "Add a Host… and the other accent lines (semibold)"),
     ("connectRowHeight", "ContentView.swift", r"DrawerRow\(height: ([\d.]+), highlighted: client\.homeAsk", "a Mac's row"),
     ("connectRowSymbolSize", "ContentView.swift", r"Image\(systemName: \"desktopcomputer\"\)\n\s*\.font\(\.system\(size: ([\d.]+)\)\)", "the Mac symbol in a row's badge"),
     ("connectFooterGap", "ContentView.swift", r"private static let footerGap: CGFloat = ([\d.]+)", "the least room between the column and the footer"),

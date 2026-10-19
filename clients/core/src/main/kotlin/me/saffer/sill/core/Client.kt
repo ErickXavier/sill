@@ -159,7 +159,7 @@ class SillClient(
             is HomeDial.Decision.Pinned -> return dialSession(addresses, Trust.Pinned(d.mac.fingerprintBytes), row.name, d.mac, f.name, tapped)
             HomeDial.Decision.AnyKey -> return dialSession(addresses, Trust.AnyKey, row.name, null, f.name, tapped)
             HomeDial.Decision.Plain -> return dialPlain(addresses, row.name, tapped)
-            HomeDial.Decision.UpdateSill -> { status("${row.name} runs an older Sill. Update Sill on the Mac to use it with this ${info.noun}."); return false }
+            HomeDial.Decision.UpdateSill -> { status("${row.name} runs an older Sill. Update Sill on the host to use it with this ${info.noun}."); return false }
             is HomeDial.Decision.Ask -> { if (tapped) ask(row, addresses, d.pin); return false }
             null -> return false
         }
@@ -186,7 +186,7 @@ class SillClient(
                 return false
             } catch (e: IOException) { last = e }
         }
-        if (tapped) status(last?.let(PairingWords::dialFailure)?.replace("The Mac", name) ?: "$name didn’t answer.")
+        if (tapped) status(last?.let(PairingWords::dialFailure)?.replace("The host", name) ?: "$name didn’t answer.")
         return false
     }
 
@@ -393,11 +393,11 @@ class SillClient(
     fun forget(macID: String) { saved.remove(macID); publishRows() }
 
     private fun addressWords(f: AddressParser.Result.Failed) = when (f.failure) {
-        AddressParser.Failure.EMPTY -> "Enter the address your Mac shows."
+        AddressParser.Failure.EMPTY -> "Enter the address your host shows."
         AddressParser.Failure.ZONE -> "Leave out the part after %: it only works on the network it was copied from."
         AddressParser.Failure.IPV4 -> "That isn’t a complete IPv4 address (four numbers 0–255)."
         AddressParser.Failure.PORT -> "A port is a number from 1 to 65535."
         AddressParser.Failure.PAIRING_LINK -> "That’s a pairing link: paste it as a link instead."
-        else -> "That isn’t an address. Enter the one your Mac’s pairing window shows."
+        else -> "That isn’t an address. Enter the one your host’s pairing window shows."
     }
 }

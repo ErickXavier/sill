@@ -55,7 +55,7 @@ struct HostSettingsPanel: View {
     /// its rows do the gestures instead.
     @State private var voiceOver = HostSettingsPanel.voiceOverRunning
 
-    private var mac: String { client.macName.isEmpty ? "the Mac" : client.macName }
+    private var mac: String { client.macName.isEmpty ? "the host" : client.macName }
     private static let shape = RoundedRectangle(cornerRadius: 20, style: .continuous)
     /// DEBUG `-SillSettingsEnd 1`: the rows start scrolled to their end, so a photo of a short
     /// screen shows the last groups (Direct Wireless, Away from home, This iPad, Take the Tour).
@@ -146,7 +146,7 @@ struct HostSettingsPanel: View {
     private var header: some View {
         HStack(alignment: .firstTextBaseline, spacing: 12) {
             VStack(alignment: .leading, spacing: 2) {
-                Text(client.macName.isEmpty ? "Mac" : client.macName)
+                Text(client.macName.isEmpty ? "Host" : client.macName)
                     .font(.headline)
                     .foregroundStyle(Palette.text)
                     .lineLimit(1)
@@ -455,7 +455,7 @@ struct HostSettingsPanel: View {
 
     /// With Remote Access off on the Mac: how to reach it away from home.
     static func turnOnRemoteAccess(_ mac: String) -> String {
-        "To reach \(mac) away from home, turn on Remote Access in Sill’s Settings on the Mac."
+        "To reach \(mac) away from home, turn on Remote Access in Sill’s Settings on the host."
     }
 
     // MARK: This device
@@ -648,7 +648,7 @@ struct HostSettingsPanel: View {
         let wanted = StreamClient.wantedFPS(remote: away)
         guard wanted < 120 else { return text }
         if away, StreamClient.wantedFPS() > wanted {
-            text += " Away from home, this \(device) asks for \(wanted) fps, which halves the data your Mac sends."
+            text += " Away from home, this \(device) asks for \(wanted) fps, which halves the data your host sends."
         } else if ProcessInfo.processInfo.isLowPowerModeEnabled, StreamClient.screenMaximumFPS() >= 120 {
             text += " Low Power Mode holds this \(device) to \(wanted) fps."
         } else {

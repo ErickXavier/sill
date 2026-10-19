@@ -248,7 +248,7 @@ object PairingCopy {
     /** A window a device opened: "iPad (iPad14,1) on this network asked to pair." */
     fun askedLine(name: String?, from: String?) = "${name ?: "A device"} ${from ?: "on this network"} asked to pair."
     const val ASKED_NEXT = "Point it at this code, or tap Enter Code Instead and type the code."
-    const val INTRO = "In Sill on your device, tap this PC, or tap Add a Mac… when you’re away, then scan this code or type the one below."
+    const val INTRO = "In Sill on your device, tap this PC, or tap Add a Host… (Add a Mac… in older versions) when you’re away, then scan this code or type the one below."
     const val CANT_SCAN = "Can’t scan? Tap Enter Code Instead, and type:"
     const val ADDRESS = "Address"
     const val CODE = "Code"

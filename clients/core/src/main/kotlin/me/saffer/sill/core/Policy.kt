@@ -13,7 +13,7 @@ object GoodbyePolicy {
     /** `goodbye` null: the connection ended without one. */
     fun outcome(goodbye: Goodbye?, mac: String, device: String, saved: Boolean): Outcome {
         val g = goodbye ?: return Outcome(
-            if (saved) "$mac disconnected. Sill will reconnect when it can reach it." else "$mac disconnected. It will reconnect when the Mac is back.",
+            if (saved) "$mac disconnected. Sill will reconnect when it can reach it." else "$mac disconnected. It will reconnect when the host is back.",
             reconnect = true, remoteAllowed = saved, isNotice = false)
         return when (g.reason) {
             Goodbye.QUIT -> Outcome("$mac quit Sill. This $device reconnects when it’s back.", true, saved, false)

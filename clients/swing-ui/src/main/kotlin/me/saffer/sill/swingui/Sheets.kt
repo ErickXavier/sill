@@ -199,7 +199,7 @@ class AppDrawer : Sheet() {
         search.actionMap.put("sill.intoList", object : AbstractAction() { override fun actionPerformed(e: java.awt.event.ActionEvent) { list.requestFocusInWindow() } })
     }
 
-    fun setMac(mac: String) { search.prompt = Copy.searchApps(mac); search.getAccessibleContext().accessibleName = "Search apps on this Mac"; search.repaint() }
+    fun setMac(mac: String) { search.prompt = Copy.searchApps(mac); search.getAccessibleContext().accessibleName = "Search apps on this host"; search.repaint() }
 
     fun refresh() { list.items = sections(search.text.trim()) ; scroll.revalidate() }
 

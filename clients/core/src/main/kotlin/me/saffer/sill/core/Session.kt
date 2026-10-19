@@ -396,7 +396,7 @@ class SillSession(
             // The Mac's goodbye comes just before it closes; a reset after it is still its close.
             if (goodbye != null) end(SessionEnd.Closed(goodbye)) else end(SessionEnd.Failed(classify(e), null))
         } catch (e: JsonException) {
-            end(SessionEnd.Failed(IOException("a message from the Mac did not decode: ${e.message}"), goodbye))
+            end(SessionEnd.Failed(IOException("a message from the host did not decode: ${e.message}"), goodbye))
         }
     }
 

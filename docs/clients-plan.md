@@ -248,8 +248,10 @@ host is a change of its own on this one: it adds a platform, and the rest is sha
   Super key, ⌘Tab Alt+Tab, ⌘Q Alt+F4, ⌘←/→ Home/End, ⌥←/→ by word; keys by physical position; text
   as Unicode whatever the layout.
 - **Gestures** as the PC's shortcuts: Super, Ctrl+Alt+arrows, Super+A, Super+D.
-- **The words**: Sill.app's, with "this PC" for "this Mac" and "device" for any device; the
-  devices still say "Add a Mac…", which also adds a PC.
+- **The words**: Sill.app's, with "this PC" for "this Mac" and "device" for any device. The
+  devices call what they connect to a host, a Mac or a PC ("Connect to a Host", "Add a Host…",
+  "On your host, choose Pair a Device…"), keeping its own name wherever they know it; the hosts'
+  pairing window names "Add a Host… (Add a Mac… in older versions)" for devices still on 0.5.1.
 - **Not done**: the Mac's menus (kinds 24, 25, 27 are skipped, so no Menus button shows), the
   virtual display, Direct Wireless, the cable rule, a keyring for the key, Wayland's own windows
   (X11 and XWayland only), multiple monitors (the primary screen is the Desktop).

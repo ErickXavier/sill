@@ -419,7 +419,7 @@ struct StreamScreen: View {
     /// What the Mac's report says for the line now: nil while the link keeps up.
     private var linkReportLine: String? {
         let host = client.settings.host
-        return AwayCopy.streamLine(link: host?.link, away: host?.away, mac: client.macName.isEmpty ? "the Mac" : client.macName)
+        return AwayCopy.streamLine(link: host?.link, away: host?.away, mac: client.macName.isEmpty ? "the host" : client.macName)
     }
 
     /// Nothing open over the stream: the Settings panel (which has the callout), the drawer, the
@@ -1288,14 +1288,14 @@ private struct TopBar: View {
                 .tourTarget(.keyboard)
 
             button(open: client.active == .desktop, symbol: "desktopcomputer", label: "Desktop",
-                   accessibilityLabel: "Show the full Mac desktop",
+                   accessibilityLabel: "Show the host’s whole desktop",
                    action: { client.select(.desktop) })
                 .opacity(scaleOpen ? 0 : 1)
                 .allowsHitTesting(!scaleOpen)
 
             // Leave's old slot: Disconnect is the Settings panel's pinned last row now.
             button(open: settingsOpen, symbol: "gearshape", label: "Settings",
-                   accessibilityLabel: settingsOpen ? "Close settings" : "Settings for \(client.macName.isEmpty ? "the Mac" : client.macName)",
+                   accessibilityLabel: settingsOpen ? "Close settings" : "Settings for \(client.macName.isEmpty ? "the host" : client.macName)",
                    action: { setSettings(!settingsOpen, true) })
                 .opacity(scaleOpen ? 0 : 1)
                 .allowsHitTesting(!scaleOpen)
@@ -1978,7 +1978,7 @@ struct AppDrawer: View {
                 .autocorrectionDisabled()
                 .textInputAutocapitalization(.never)
                 .submitLabel(.search)
-                .accessibilityLabel("Search apps on this Mac")
+                .accessibilityLabel("Search apps on this host")
                 .focused($searchFocused)
         }
         .frame(height: 48)

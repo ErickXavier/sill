@@ -182,7 +182,7 @@ struct PairDeviceView: View {
                         .font(.headline)
                         .fixedSize(horizontal: false, vertical: true)
                 }
-                Text("In Sill on your device, tap this Mac, or tap Add a Mac… when you’re away, then scan this code or type the one below.")
+                Text("In Sill on your device, tap this Mac, or tap Add a Host… (Add a Mac… in older versions) when you’re away, then scan this code or type the one below.")
                     .fixedSize(horizontal: false, vertical: true)
             }
             QRCodeView(text: offer.url, spent: isSpent)

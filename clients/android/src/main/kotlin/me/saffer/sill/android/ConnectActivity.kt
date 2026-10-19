@@ -171,7 +171,7 @@ class ConnectActivity : Activity(), ClientListener {
             }
         })
     }
-    override fun onStatus(text: String?) = runOnUiThread { status.text = text ?: "Looking for Macs…" }
+    override fun onStatus(text: String?) = runOnUiThread { status.text = text ?: "Looking for hosts…" }
     override fun onPairingPrompt(prompt: PairingPrompt) = runOnUiThread { card.showPrompt(prompt) }
     override fun onSessionStarted(session: SillSession, mac: String) = runOnUiThread {
         card.close()
@@ -397,7 +397,7 @@ class PairCard(context: Context, private val dp: Dp, private val app: SillApp) :
             }
             Mode.AddLink -> { title.text = Copy.addMacTitle; words.text = PlatformCopy.pastePairingLink; other.text = Copy.enterCodeInstead }
             Mode.Prompt -> { title.text = "Pair with ${prompt?.macName}"; words.text = prompt?.words ?: "" }
-            Mode.Link -> words.text = "Only pair with a Mac you can see showing this code now."
+            Mode.Link -> words.text = "Only pair with a host you can see showing this code now."
         }
         address.visibility = if (m == Mode.Add) VISIBLE else GONE
         code.visibility = if (m == Mode.Add || m == Mode.Prompt) VISIBLE else GONE

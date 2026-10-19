@@ -130,7 +130,7 @@ class DrawerView(context: Context, dp: Dp) : Sheet(context, dp) {
         })
     }
 
-    fun setMac(name: String) { search.field.hint = Copy.searchApps(name.ifEmpty { "the Mac" }) }
+    fun setMac(name: String) { search.field.hint = Copy.searchApps(name.ifEmpty { "the host" }) }
 
     fun update(windows: List<WindowInfo>, active: Long?, apps: List<AppInfo>, icons: Map<String, Bitmap>) {
         this.windows = windows; this.active = active; this.apps = apps; this.icons = icons

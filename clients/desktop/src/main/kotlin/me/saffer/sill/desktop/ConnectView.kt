@@ -109,7 +109,7 @@ class ConnectView : JPanel() {
     fun showCard(c: Card) {
         card = c; working = false
         progress.text = ""; progress.warning = false
-        title.text = if (c == Card.Code) "Pair with ${prompt?.macName ?: "Mac"}" else Copy.addMacTitle
+        title.text = if (c == Card.Code) "Pair with ${prompt?.macName ?: "Host"}" else Copy.addMacTitle
         when (c) {
             Card.Address -> {
                 how.text = Copy.addMacTyped

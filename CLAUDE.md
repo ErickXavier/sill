@@ -39,7 +39,14 @@ job, and this build's `platform()` says Windows is not in it.
   host's self-test; `--headless --pair`; `--input-probe`.
 - **Untested, for Noah:** any iPhone, iPad or Android app against a PC host (docs/clients-plan.md's
   L1–L3, docs/ui-parity.md's H8–H10). Not built: menus, virtual display, Direct Wireless,
-  Wayland-native windows, multiple monitors. The devices still say "Add a Mac…" for a PC.
+  Wayland-native windows, multiple monitors.
+- The devices say "host", not "Mac" (Noah: "the clients should call the hosts Host, not Mac"): the
+  iOS app, the core's words and the Android and Windows clients ("Connect to a Host", "Add a Host…",
+  "Looking for hosts…", "your host", "the host"; a host with no name is "Host"), their checks
+  (home-device, policy, goodbye, home-model, remote-rules, menu-state, tour) and
+  `clients/design`'s anchors with them; comments and console lines keep "Mac". Sill.app's and the PC
+  host's pairing windows say "Add a Host… (Add a Mac… in older versions)". The App Store's
+  screenshots still show "Connect to a Mac" until the next ones are taken.
 
 **Keep Screen On, Sill.app's device words and the review (2026-10-19, on `client-android`).**
 Noah: "Android/IOS: app should have an option to keep the phone awake": Keep Screen On in the

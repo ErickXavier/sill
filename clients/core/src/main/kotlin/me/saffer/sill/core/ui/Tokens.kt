@@ -204,11 +204,11 @@ object Ui {
     const val footHeight = 44.0
     /** HostSettingsPanel.swift: seconds a pick waits before its spinner shows */
     const val pendingDelay = 0.3
-    /** ContentView.swift: "Connect to a Mac" (semibold) */
+    /** ContentView.swift: "Connect to a Host" (semibold) */
     const val connectTitleSize = 17.0
     /** ContentView.swift: the status line */
     const val connectStatusSize = 13.0
-    /** ContentView.swift: Add a Mac… and the other accent lines (semibold) */
+    /** ContentView.swift: Add a Host… and the other accent lines (semibold) */
     const val connectLinkSize = 15.0
     /** ContentView.swift: a Mac's row */
     const val connectRowHeight = 50.0

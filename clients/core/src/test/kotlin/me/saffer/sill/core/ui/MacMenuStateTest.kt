@@ -88,7 +88,7 @@ class MacMenuStateTest {
         val secs = MacMenuState.sections(items, false, null, 3, 1)
         assertEquals(listOf("A"), secs[0].map { it.title })
         assertEquals(listOf(Row.Mark.On, Row.Mark.Mixed), secs[1].map { it.mark })
-        assertEquals(Row.note("3 more on the Mac"), secs[2].single())
+        assertEquals(Row.note("3 more on the host"), secs[2].single())
         assertEquals(listOf(listOf(Row.note("No items"))), MacMenuState.sections(emptyList(), false, null, 0, 1))
         val tops = MacMenuState.topRows(listOf(MacMenuItem("0", "Apple"), MacMenuItem("1", "Code"), MacMenuItem("1", "Dup"), MacMenuItem("01", "Zero"),
             MacMenuItem("12345", "Long"), MacMenuItem("2.1", "Deep"), MacMenuItem("3", "")), 1)

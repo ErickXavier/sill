@@ -112,8 +112,8 @@ object PanelCopy {
     val resolutions = listOf("Retina" to 2.0, "Standard" to 1.0)
     val frameRates = listOf("60 fps" to 60, "120 fps" to 120)
 
-    fun macName(name: String) = name.ifEmpty { "the Mac" }
-    fun title(name: String) = name.ifEmpty { "Mac" }
+    fun macName(name: String) = name.ifEmpty { "the host" }
+    fun title(name: String) = name.ifEmpty { "Host" }
 
     /** The header's readout: "3024×1964 · 60 fps · 40 Mbps · Wi-Fi", no-break spaces keeping each
      *  value with its unit and each "·" with the value before it. */
@@ -136,7 +136,7 @@ object PanelCopy {
         var t = "Quality is per 60 fps; a 120 fps stream gets twice as much. $fastLinkNote"
         if (wanted >= 120) return t
         t += when {
-            awayCapped -> " Away from home, this $device asks for $wanted fps, which halves the data your Mac sends."
+            awayCapped -> " Away from home, this $device asks for $wanted fps, which halves the data your host sends."
             lowPower -> " Low Power Mode holds this $device to $wanted fps."
             else -> " This $device shows up to $wanted fps."
         }

@@ -170,8 +170,8 @@ class MacMenuState {
         const val KEY_LIMIT = 16
         const val NOTE_LIMIT = 300
         const val MAX_CHOICES = 16
-        fun noAnswer(mac: String) = "${mac.ifEmpty { "The Mac" }} didn’t answer. Open the menu again."
-        fun moreOnTheMac(count: Int) = "$count more on the Mac"
+        fun noAnswer(mac: String) = "${mac.ifEmpty { "The host" }} didn’t answer. Open the menu again."
+        fun moreOnTheMac(count: Int) = "$count more on the host"
 
         fun sections(items: List<MacMenuItem>, stale: Boolean, note: String?, more: Int, version: Int?): List<List<Row>> {
             val out = ArrayList<List<Row>>()
